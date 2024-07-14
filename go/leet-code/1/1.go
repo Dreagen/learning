@@ -11,21 +11,15 @@ func main() {
 }
 
 func twoSum(nums []int, target int) []int {
+	m := make(map[int]int)
 	for index, element := range nums {
-		result := inner(element, nums[index+1:], target, index)
-		if result != nil {
-			return result
+		need := target - element
+		if secondIndex, found := m[need]; found {
+			return []int{index, secondIndex}
 		}
+
+		m[element] = index
 	}
 
-	return nil
-}
-
-func inner(first int, nums []int, target int, starting int) []int {
-	for index, element := range nums {
-		if first+element == target {
-			return []int{starting, starting + index + 1}
-		}
-	}
 	return nil
 }
