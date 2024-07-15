@@ -28,10 +28,10 @@
 
 {{ block "form" . }}
 <form hx-swap="outerHTML" hx-post="/contacts">
-  name: <input 
+  name: <input
     {{ if .Values.name }} values="{{ .Values.name }}" {{ end }}
     type="text" name="name" />
-  email: <input 
+  email: <input
     {{ if .Values.email }} values="{{ .Values.email }}" {{ end }}
     type="text" name="email" placeholder="Email" />
 
@@ -52,4 +52,17 @@
   </div>
   {{ end}}
 </div>
+{{ end }}
+
+{{ block "contact" . }}
+<div>
+  Name: <span>{{ .Name }}</span>
+  Email: <span>{{ .Email }}</span>
+</div> 
+{{ end }}
+
+{{ block "oob-contact" . }}
+<div id="contacts" hx-swap-oob="afterbegin">
+  {{ template "contact" . }}
+</div> 
 {{ end }}
