@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -36,23 +37,37 @@ func main() {
 	stdoutStr := stdoutBuf.String()
 
 	var passedLines []string
-	var failedLines []string
+	var failureTestDescriptions []string
+	failedLinesMap := make(map[string][]string)
+
 	lines := strings.Split(stdoutStr, "\n")
 
 	for _, line := range lines {
 		if strings.Contains(line, "Passed!") && SliceContains(passedLines, line) == false {
 			passedLines = append(passedLines, line)
-		} else if strings.Contains(line, "Failed!") && SliceContains(failedLines, line) == false {
-			failedLines = append(failedLines, line)
+		} else if strings.Contains(line, "Failed!") {
+			if _, ok := failedLinesMap[line]; ok == false {
+				failedLinesMap[line] = failureTestDescriptions
+				failureTestDescriptions = []string{}
+			}
+		} else if HasTestFailureDescription(line) {
+			failureTestDescriptions = append(failureTestDescriptions, line)
 		}
 	}
+
+	fmt.Println()
+	fmt.Println("Summary:")
+	fmt.Println()
 
 	for _, passedLine := range passedLines {
 		fmt.Println(passedLine)
 	}
 
-	for _, failedLine := range failedLines {
-		fmt.Println(failedLine)
+	for key, failedTestDescriptions := range failedLinesMap {
+		fmt.Println(key)
+		for _, failedTestDescription := range failedTestDescriptions {
+			fmt.Println(failedTestDescription)
+		}
 	}
 }
 
@@ -64,4 +79,22 @@ func SliceContains(slice []string, value string) bool {
 	}
 
 	return false
+}
+
+func MapContains(m map[string][]string, value string) bool {
+	for key := range m {
+		if key == value {
+			return true
+		}
+	}
+
+	return false
+}
+
+func HasTestFailureDescription(line string) bool {
+	pattern := `\[\d+\s+ms\]\s*$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(line)
 }
