@@ -2,16 +2,36 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
 
 func main() {
 	command := "dotnet test"
+	project := flag.String("project", "", "Project to run tests for e.g application or domain")
+	flag.Parse()
+
+	if *project == "" {
+		runCommand(command)
+		return
+	}
+
+	projectLocation, err := getTestProjectPath(*project)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	runCommand(command + " " + projectLocation)
+}
+
+func runCommand(command string) {
 
 	var stdoutBuf bytes.Buffer
 
@@ -43,14 +63,14 @@ func main() {
 	lines := strings.Split(stdoutStr, "\n")
 
 	for _, line := range lines {
-		if strings.Contains(line, "Passed!") && SliceContains(passedLines, line) == false {
+		if strings.Contains(line, "Passed!") && sliceContains(passedLines, line) == false {
 			passedLines = append(passedLines, line)
 		} else if strings.Contains(line, "Failed!") {
 			if _, ok := failedLinesMap[line]; ok == false {
 				failedLinesMap[line] = failureTestDescriptions
 				failureTestDescriptions = []string{}
 			}
-		} else if HasTestFailureDescription(line) {
+		} else if hasTestFailureDescription(line) {
 			failureTestDescriptions = append(failureTestDescriptions, line)
 		}
 	}
@@ -71,7 +91,7 @@ func main() {
 	}
 }
 
-func SliceContains(slice []string, value string) bool {
+func sliceContains(slice []string, value string) bool {
 	for _, s := range slice {
 		if s == value {
 			return true
@@ -81,20 +101,29 @@ func SliceContains(slice []string, value string) bool {
 	return false
 }
 
-func MapContains(m map[string][]string, value string) bool {
-	for key := range m {
-		if key == value {
-			return true
-		}
-	}
-
-	return false
-}
-
-func HasTestFailureDescription(line string) bool {
+func hasTestFailureDescription(line string) bool {
 	pattern := `\[\d+\s+ms\]\s*$`
 
 	re := regexp.MustCompile(pattern)
 
 	return re.MatchString(line)
+}
+
+func getTestProjectPath(search string) (string, error) {
+	var foundPath string
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() == false && strings.Contains(strings.ToLower(path), strings.ToLower(search)) && strings.HasSuffix(strings.ToLower(info.Name()), ".tests.csproj") {
+			fmt.Printf("matched %s\n", path)
+			foundPath = path
+			return nil
+		}
+
+		return nil
+	})
+
+	return foundPath, err
 }
