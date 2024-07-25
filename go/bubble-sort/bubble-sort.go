@@ -24,8 +24,8 @@ func sort(nums []int) {
 }
 
 func sort2(nums []int) {
-	for i := 0; i < len(nums)-1; i++ {
-		for j := 0; j < len(nums)-2-i; j++ {
+	for i := 0; i < len(nums); i++ {
+		for j := 0; j < len(nums)-1-i; j++ {
 			if nums[j] > nums[j+1] {
 				swap(nums, j, j+1)
 			}
