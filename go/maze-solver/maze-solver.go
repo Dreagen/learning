@@ -13,7 +13,7 @@ var dir = [][]int{
 	{0, 1},
 }
 
-func Walk(maze []string, wall rune, current Point, end Point, seen [][]bool, path *[]Point) bool {
+func walk(maze []string, wall rune, current Point, end Point, seen [][]bool, path *[]Point) bool {
 
 	if current.x < 0 || current.x >= len(maze[0]) || current.y < 0 || current.y >= len(maze) {
 		return false
@@ -37,7 +37,7 @@ func Walk(maze []string, wall rune, current Point, end Point, seen [][]bool, pat
 
 	for i := 0; i < len(dir); i++ {
 		current = Point{x: current.x + dir[i][0], y: current.y + dir[i][1]}
-		if Walk(maze, wall, current, end, seen, path) {
+		if walk(maze, wall, current, end, seen, path) {
 			return true
 		}
 	}
@@ -54,7 +54,7 @@ func Solve(maze []string, wall rune, start, end Point) []Point {
 		seen[i] = make([]bool, len(maze[0]))
 	}
 
-	Walk(maze, wall, start, end, make([][]bool, 0), &path)
+	walk(maze, wall, start, end, make([][]bool, 0), &path)
 
 	return path
 }
