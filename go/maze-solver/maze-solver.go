@@ -10,10 +10,10 @@ func main() {
 }
 
 var dir = [][]int{
-	{-1, 0},
-	{1, 0},
 	{0, -1},
 	{0, 1},
+	{-1, 0},
+	{1, 0},
 }
 
 func walk(maze []string, wall rune, current Point, end Point, seen [][]bool, path *[]Point, iterations *int) bool {
