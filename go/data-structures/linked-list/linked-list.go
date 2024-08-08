@@ -51,7 +51,7 @@ func (list *DoublyLinkedList[T]) InsertAt(item T, index int) {
 	}
 
 	list.length++
-	nodeToReplace := list.head
+	nodeToReplace := getAt(list, index)
 	for i := 1; i <= index; i++ {
 		nodeToReplace = nodeToReplace.next
 	}
@@ -94,11 +94,39 @@ func (list *DoublyLinkedList[T]) Remove(item T) {
 		nodeToRemove = nodeToRemove.next
 	}
 
-	if nodeToRemove.value != item {
+	if nodeToRemove == nil || nodeToRemove.value != item {
+		return
+	}
+
+	removeNode(list, nodeToRemove)
+}
+
+func (list *DoublyLinkedList[T]) Get(index int) T {
+	return getAt(list, index).value
+}
+
+func (list *DoublyLinkedList[T]) RemoveAt(index int) {
+	removeNode(list, getAt(list, index))
+}
+
+func getAt[T constraints.Ordered](list *DoublyLinkedList[T], index int) *Node[T] {
+	node := list.head
+	for i := 1; i <= index; i++ {
+		node = node.next
+	}
+
+	return node
+}
+
+func removeNode[T constraints.Ordered](list *DoublyLinkedList[T], nodeToRemove *Node[T]) {
+	if list.length == 0 {
 		return
 	}
 
 	list.length--
+	if nodeToRemove == nil {
+		return
+	}
 
 	if list.length == 0 {
 		list.head = nil
@@ -122,10 +150,4 @@ func (list *DoublyLinkedList[T]) Remove(item T) {
 
 	nodeToRemove.next = nil
 	nodeToRemove.prev = nil
-}
-
-func (list *DoublyLinkedList[T]) Get(index int) T {
-}
-
-func (list *DoublyLinkedList[T]) RemoveAt(index int) {
 }
