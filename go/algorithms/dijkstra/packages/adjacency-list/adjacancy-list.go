@@ -1,7 +1,7 @@
 package adjacencylist
 
 func DepthFirstSearch(graph WeightedAdjacencyList, source, needle int) *[]int {
-	seen := make([]bool, len(graph.value))
+	seen := make([]bool, len(graph.Value))
 	path := &[]int{}
 	fillSlice(&seen, false)
 
@@ -27,12 +27,12 @@ func walk(graph WeightedAdjacencyList, current, needle int, seen *[]bool, path *
 		return true
 	}
 
-	list := graph.value[current]
+	list := graph.Value[current]
 
 	for i := 0; i < len(list); i++ {
 		edge := list[i]
 
-		if walk(graph, edge.to, needle, seen, path) {
+		if walk(graph, edge.To, needle, seen, path) {
 			return true
 		}
 	}
@@ -44,16 +44,16 @@ func walk(graph WeightedAdjacencyList, current, needle int, seen *[]bool, path *
 }
 
 type GraphEdge struct {
-	to     int
-	weight int
+	To     int
+	Weight int
 }
 
 func CreateGraphEdge(to, weight int) *GraphEdge {
-	return &GraphEdge{to: to, weight: weight}
+	return &GraphEdge{To: to, Weight: weight}
 }
 
 type WeightedAdjacencyList struct {
-	value [][]GraphEdge
+	Value [][]GraphEdge
 }
 
 func fillSlice[T any](slice *[]T, value T) {

@@ -17,27 +17,27 @@ func createGraph() WeightedAdjacencyList {
 	list := [][]GraphEdge{}
 
 	inner1 := []GraphEdge{
-		{to: 1, weight: 3},
-		{to: 2, weight: 1},
+		{To: 1, Weight: 3},
+		{To: 2, Weight: 1},
 	}
 	inner2 := []GraphEdge{
-		{to: 4, weight: 1},
+		{To: 4, Weight: 1},
 	}
 	inner3 := []GraphEdge{
-		{to: 3, weight: 7},
+		{To: 3, Weight: 7},
 	}
 	inner4 := []GraphEdge{}
 	inner5 := []GraphEdge{
-		{to: 1, weight: 1},
-		{to: 3, weight: 5},
-		{to: 5, weight: 2},
+		{To: 1, Weight: 1},
+		{To: 3, Weight: 5},
+		{To: 5, Weight: 2},
 	}
 	inner6 := []GraphEdge{
-		{to: 2, weight: 18},
-		{to: 6, weight: 1},
+		{To: 2, Weight: 18},
+		{To: 6, Weight: 1},
 	}
 	inner7 := []GraphEdge{
-		{to: 3, weight: 1},
+		{To: 3, Weight: 1},
 	}
 
 	list = append(list, inner1)
@@ -48,7 +48,7 @@ func createGraph() WeightedAdjacencyList {
 	list = append(list, inner6)
 	list = append(list, inner7)
 
-	return WeightedAdjacencyList{value: list}
+	return WeightedAdjacencyList{Value: list}
 }
 
 func slicesMatch(slice1, slice2 []int) bool {
