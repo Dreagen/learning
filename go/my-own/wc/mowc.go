@@ -53,7 +53,7 @@ func main() {
 	}
 
 	if *newLineFlag {
-		lineCount, err := countLines(reader)
+		lineCount, err := count(reader, bufio.ScanLines)
 		if err != nil {
 			fmt.Printf("Could not count lines in file: %v\n", err.Error())
 		}
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	if *wordFlag {
-		wordCount, err := countWords(reader)
+		wordCount, err := count(reader, bufio.ScanWords)
 		if err != nil {
 			fmt.Printf("Could not count words in file: %v\n", err.Error())
 		}
@@ -71,7 +71,7 @@ func main() {
 	}
 
 	if *characterFlag {
-		runeCount, err := countRunes(reader)
+		runeCount, err := count(reader, bufio.ScanRunes)
 		if err != nil {
 			fmt.Printf("Could not count characters in file: %v\n", err.Error())
 		}
@@ -85,12 +85,12 @@ func main() {
 			fmt.Printf("Could not count bytes in file: %v\n", err.Error())
 		}
 
-		wordCount, err := countWords(reader)
+		wordCount, err := count(reader, bufio.ScanWords)
 		if err != nil {
 			fmt.Printf("Could not count words in file: %v\n", err.Error())
 		}
 
-		lineCount, err := countLines(reader)
+		lineCount, err := count(reader, bufio.ScanLines)
 		if err != nil {
 			fmt.Printf("Could not count lines in file: %v\n", err.Error())
 		}
@@ -103,7 +103,7 @@ func countBytes(reader io.ReadSeeker) (int, error) {
 	byteCount := 0
 
 	for {
-		buffer := make([]byte, 1024) // Read in chunks of 1024 bytes
+		buffer := make([]byte, 1024)
 		n, err := reader.Read(buffer)
 		byteCount += n
 
@@ -120,9 +120,10 @@ func countBytes(reader io.ReadSeeker) (int, error) {
 	return byteCount, nil
 }
 
-func countLines(reader io.ReadSeeker) (int, error) {
+func count(reader io.ReadSeeker, splitMode bufio.SplitFunc) (int, error) {
 	lineCount := 0
 	scanner := bufio.NewScanner(reader)
+	scanner.Split(splitMode)
 
 	for scanner.Scan() {
 		lineCount++
@@ -135,40 +136,4 @@ func countLines(reader io.ReadSeeker) (int, error) {
 	reader.Seek(0, 0)
 
 	return lineCount, nil
-}
-
-func countWords(reader io.ReadSeeker) (int, error) {
-	wordCount := 0
-	scanner := bufio.NewScanner(reader)
-	scanner.Split(bufio.ScanWords)
-
-	for scanner.Scan() {
-		wordCount++
-	}
-
-	if err := scanner.Err(); err != nil {
-		return -1, err
-	}
-
-	reader.Seek(0, 0)
-
-	return wordCount, nil
-}
-
-func countRunes(reader io.ReadSeeker) (int, error) {
-	wordCount := 0
-	scanner := bufio.NewScanner(reader)
-	scanner.Split(bufio.ScanRunes)
-
-	for scanner.Scan() {
-		wordCount++
-	}
-
-	if err := scanner.Err(); err != nil {
-		return -1, err
-	}
-
-	reader.Seek(0, 0)
-
-	return wordCount, nil
 }
