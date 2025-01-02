@@ -1,0 +1,10 @@
+File.stream!("input.txt")
+|> Enum.map(&String.trim/1)
+|> Enum.map(&String.split(&1, "   "))
+|> Enum.map(fn [a, d] -> {String.to_integer(a), String.to_integer(d)} end)
+|> Enum.unzip()
+|> (fn {list1, list2} ->
+      Enum.map(list1, fn x -> x * Enum.count(list2, fn y -> x == y end) end)
+    end).()
+|> Enum.sum()
+|> IO.inspect()
