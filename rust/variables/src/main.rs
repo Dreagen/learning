@@ -1,11 +1,11 @@
 fn main() {
-    let tup = ("Nick", 36);
-    let (name, age) = tup;
-    let age = tup.1;
+    let a = [10, 20, 30, 40, 50];
 
-    let error_codes = [200, 404, 500];
-    let not_found = error_codes[1];
-    let error = error_codes[3];
+    for element in a.iter() {
+        println!("element is {}", element);
+    }
 
-    let byte = [0; 8];
+    for number in 1..4 {
+        println!("{}!", number);
+    }
 }
