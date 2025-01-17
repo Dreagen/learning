@@ -1,29 +1,13 @@
-mod front_of_house {
-    pub mod hosting {
-        pub fn add_to_waitlist() {}
+pub use self::front_of_house::hosting;
 
-        fn seat_at_table() {}
-    }
+use rand::{CryptoRng, Rng};
+use std::io::*;
 
-    mod serving {
-        fn take_order() {}
-
-        fn serve_order() {}
-
-        fn take_payment() {}
-    }
-}
-
-fn server_order() {}
-
-mod back_of_house {
-    pub enum Appetizer {
-        Soup,
-        Salad,
-    }
-}
+mod front_of_house;
 
 fn eat_at_restaurant() {
-    let order1 = back_of_house::Appetizer::Soup;
-    let order2 = back_of_house::Appetizer::Salad;
+    let secret_number = rand::thread_rng().gen_range(1..100);
+    hosting::add_to_waitlist();
+    hosting::add_to_waitlist();
+    hosting::add_to_waitlist();
 }
