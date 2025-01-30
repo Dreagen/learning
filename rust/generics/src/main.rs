@@ -1,50 +1,22 @@
-fn main() {
-    // let number_list = vec![34, 50, 25, 100, 65];
-    // let largest = get_largest(number_list);
-    // println!("largest number is {}", largest);
-    //
-    // let char_list = vec!['y', 'm', 'a', 'q'];
-    // let largest = get_largest(char_list);
-    // println!("largest number is {}", largest);
-
-    let p1 = Point { x: 5, y: 10 };
-    let p2 = Point { x: 5.0, y: 10.0 };
+struct Point<T, U> {
+    x: T,
+    y: U,
 }
 
-fn get_largest<T: PartialOrd + Copy>(number_list: Vec<T>) -> T {
-    let mut largest = number_list[0];
-
-    for num in number_list {
-        if num > largest {
-            largest = num;
+impl<T, U> Point<T, U> {
+    fn mixup<V, W>(self, other: Point<V, W>) -> Point<T, W> {
+        Point {
+            x: self.x,
+            y: other.y,
         }
     }
-    largest
 }
 
-struct Point<T> {
-    x: T,
-    y: T,
-}
+fn main() {
+    let p1 = Point { x: 5, y: 10.4 };
+    let p2 = Point { x: "Hello", y: 'c' };
 
-impl<T> Point<T> {
-    fn x(&self) -> &T {
-        &self.x
-    }
-}
+    let p3 = p1.mixup(p2);
 
-impl Point<f64> {
-    fn y(&self) -> f64 {
-        self.y
-    }
-}
-
-enum Option<T> {
-    Some(T),
-    None,
-}
-
-enum Result<T, E> {
-    Ok(T),
-    Err(E),
+    println!("p3.x = {}, p3.y = {}", p3.x, p3.y);
 }
