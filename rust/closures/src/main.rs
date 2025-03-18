@@ -1,4 +1,4 @@
-use std::{thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
 
 fn main() {
     let simulated_intensity = 10;
@@ -7,31 +7,35 @@ fn main() {
     generate_workout(simulated_intensity, simulated_random_number);
 }
 
-struct Cacher<T>
+struct Cacher<T, TInput, TResult>
 where
-    T: Fn(u32) -> u32,
+    T: Fn(TInput) -> TResult,
 {
+    map: HashMap<TInput, TResult>,
     calculation: T,
-    value: Option<u32>,
 }
 
-impl<T> Cacher<T>
+impl<T, TInput, TResult> Cacher<T, TInput, TResult>
 where
-    T: Fn(u32) -> u32,
+    T: Fn(TInput) -> TResult,
+    TInput: Eq,
+    TInput: std::hash::Hash,
+    TInput: Copy,
+    TResult: Copy,
 {
-    fn new(calculation: T) -> Cacher<T> {
+    fn new(calculation: T) -> Cacher<T, TInput, TResult> {
         Cacher {
+            map: HashMap::new(),
             calculation,
-            value: None,
         }
     }
 
-    fn value(&mut self, arg: u32) -> u32 {
-        match self.value {
-            Some(x) => x,
+    fn value(&mut self, arg: TInput) -> TResult {
+        match self.map.get(&arg) {
+            Some(x) => *x,
             None => {
                 let v = (self.calculation)(arg);
-                self.value = Some(v);
+                self.map.insert(arg, v);
                 v
             }
         }
