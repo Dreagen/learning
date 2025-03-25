@@ -2,22 +2,22 @@ use core::time;
 use rand::prelude::*;
 use std::{
     collections::HashMap,
+    io::Write,
     thread::{self},
 };
 
 fn main() {
-    let mut board = Board::new(150, 50);
+    let mut board = Board::new(250, 60);
 
     board.print();
-    for _ in 0..500 {
+    for _ in 0..1000 {
         board.update();
-        board.print();
 
-        thread::sleep(time::Duration::from_millis(25));
+        thread::sleep(time::Duration::from_millis(10));
     }
 }
 
-const DARK_GRAY: &str = "\x1B[90m";
+const DARK_GRAY: &str = "\x1B[30m";
 const LIGHT_BLUE: &str = "\x1B[94m";
 const WHITE: &str = "\x1B[0m";
 
@@ -26,6 +26,7 @@ struct Board {
     width: usize,
     height: usize,
     grid: Vec<Vec<Cell>>,
+    previous_states: HashMap<Position, State>,
 }
 
 impl Board {
@@ -35,6 +36,7 @@ impl Board {
             width,
             height,
             grid: Vec::new(),
+            previous_states: HashMap::new(),
         };
 
         for h in 0..height {
@@ -60,7 +62,18 @@ impl Board {
 
     fn update(&mut self) {
         self.generation += 1;
+        move_cursor(0, 0);
+        println!("{}Generation: {}", WHITE, self.generation);
+        std::io::stdout().flush().unwrap(); // Make sure the text appears immediately
         let mut new_states = HashMap::new();
+        self.previous_states = HashMap::new();
+
+        for cells_in_row in &self.grid {
+            for cell in cells_in_row {
+                self.previous_states.insert(cell.pos.clone(), cell.state);
+            }
+        }
+
         for cells_in_row in &self.grid {
             for cell in cells_in_row {
                 new_states.insert(cell.pos.clone(), cell.get_next_state(self));
@@ -69,8 +82,15 @@ impl Board {
 
         for new_state in new_states {
             let (position, state) = new_state;
-            self.grid[position.y][position.x].state = state;
+            let previous_state = self.previous_states.get(&position).unwrap();
+            if previous_state != &state {
+                move_cursor(position.x, position.y + 1);
+                self.grid[position.y][position.x].state = state;
+                print!("{}", self.grid[position.y][position.x].print());
+            }
         }
+
+        move_cursor(0, self.height);
     }
 
     fn print(&self) {
@@ -88,6 +108,10 @@ impl Board {
 
 fn clear_console() {
     print!("\x1B[2J\x1B[1;1H");
+}
+
+fn move_cursor(x: usize, y: usize) {
+    print!("\x1B[{};{}H", y + 1, x + 1);
 }
 
 struct Cell {
@@ -209,7 +233,7 @@ impl Cell {
     }
 
     fn new(h: usize, w: usize) -> Self {
-        let state = if rand::rng().random_bool(0.5) {
+        let state = if rand::rng().random_bool(0.4) {
             State::Alive
         } else {
             State::Dead
@@ -222,7 +246,7 @@ impl Cell {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 enum State {
     Alive,
     Dead,
