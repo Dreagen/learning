@@ -6,19 +6,19 @@ use std::{
 };
 
 fn main() {
-    let mut board = Board::new(10, 10);
+    let mut board = Board::new(150, 50);
 
     board.print();
-    for _ in 0..1 {
+    for _ in 0..500 {
         board.update();
         board.print();
 
-        thread::sleep(time::Duration::from_millis(100));
+        thread::sleep(time::Duration::from_millis(25));
     }
 }
 
 struct Board {
-    updates: u32,
+    generation: u32,
     width: usize,
     height: usize,
     grid: Vec<Vec<Cell>>,
@@ -27,7 +27,7 @@ struct Board {
 impl Board {
     fn new(width: usize, height: usize) -> Board {
         let mut board = Board {
-            updates: 0,
+            generation: 0,
             width,
             height,
             grid: Vec::new(),
@@ -55,7 +55,7 @@ impl Board {
     }
 
     fn update(&mut self) {
-        self.updates += 1;
+        self.generation += 1;
         let mut new_states = HashMap::new();
         for cells_in_row in &self.grid {
             for cell in cells_in_row {
@@ -71,7 +71,7 @@ impl Board {
 
     fn print(&self) {
         clear_console();
-        println!("Updates: {}", self.updates);
+        println!("Generation: {}", self.generation);
         for cells_in_row in &self.grid {
             for cell in cells_in_row {
                 print!("{}", cell.print());
@@ -83,7 +83,7 @@ impl Board {
 }
 
 fn clear_console() {
-    // print!("\x1B[2J\x1B[1;1H");
+    print!("\x1B[2J\x1B[1;1H");
 }
 
 struct Cell {
@@ -93,9 +93,11 @@ struct Cell {
 
 impl Cell {
     fn print(&self) -> String {
+        let green = "\x1B[92m";
+        let reset = "\x1B[0m";
         match self.state {
-            State::Alive => String::from("+"),
-            State::Dead => String::from("o"),
+            State::Alive => format!("{}o{}", green, reset),
+            State::Dead => format!("o"),
         }
     }
 
@@ -188,7 +190,9 @@ impl Cell {
         for pos in neighbouring_cell_positions {
             if pos.is_some() {
                 if let Some(cell) = board.get_cell_at_pos(pos.unwrap()) {
-                    live_neighbours.push(cell);
+                    if cell.state == State::Alive {
+                        live_neighbours.push(cell);
+                    }
                 };
             }
         }
@@ -216,7 +220,7 @@ impl Cell {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 enum State {
     Alive,
     Dead,
