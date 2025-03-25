@@ -233,7 +233,7 @@ impl Cell {
     }
 
     fn new(h: usize, w: usize) -> Self {
-        let state = if rand::rng().random_bool(0.4) {
+        let state = if rand::rng().random_bool(0.5) {
             State::Alive
         } else {
             State::Dead
