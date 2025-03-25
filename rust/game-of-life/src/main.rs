@@ -17,6 +17,10 @@ fn main() {
     }
 }
 
+const DARK_GRAY: &str = "\x1B[90m";
+const LIGHT_BLUE: &str = "\x1B[94m";
+const WHITE: &str = "\x1B[0m";
+
 struct Board {
     generation: u32,
     width: usize,
@@ -71,7 +75,7 @@ impl Board {
 
     fn print(&self) {
         clear_console();
-        println!("Generation: {}", self.generation);
+        println!("{}Generation: {}", WHITE, self.generation);
         for cells_in_row in &self.grid {
             for cell in cells_in_row {
                 print!("{}", cell.print());
@@ -93,11 +97,9 @@ struct Cell {
 
 impl Cell {
     fn print(&self) -> String {
-        let green = "\x1B[92m";
-        let reset = "\x1B[0m";
         match self.state {
-            State::Alive => format!("{}o{}", green, reset),
-            State::Dead => format!("o"),
+            State::Alive => format!("{}o{}", LIGHT_BLUE, DARK_GRAY),
+            State::Dead => format!("{}o", DARK_GRAY),
         }
     }
 
