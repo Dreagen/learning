@@ -1,0 +1,10 @@
+[package]
+name = "atc-recalc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.44.1", features = ["rt", "macros", "rt-multi-thread"] }
+reqwest = { version = "0.12.15", features = ["json"] }
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.140"
