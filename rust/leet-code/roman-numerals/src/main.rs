@@ -1,72 +1,59 @@
 fn main() {}
 
-#[warn(dead_code)]
-fn calculate_roman_numerals(input: String) -> u32 {
+pub fn calculate_roman_numerals(s: String) -> u32 {
     let mut total = 0;
+    let mut marker: u8 = 0;
 
-    let mut found_i = false;
-    let mut found_x = false;
-    let mut found_c = false;
-
-    for char in input.chars().into_iter() {
+    for char in s.bytes() {
         total += match char {
-            'I' => {
-                found_i = !found_i;
+            b'I' => {
+                if marker == 1 {
+                    marker = 0;
+                } else {
+                    marker = 1;
+                }
                 1
             }
-            'V' => {
-                if found_i {
-                    found_i = false;
+            b'V' => {
+                if marker == 1 {
+                    marker = 0;
                     3
                 } else {
                     5
                 }
             }
-            'X' => {
-                found_x = !found_x;
-                if found_i {
-                    found_i = false;
-                    8
-                } else {
-                    10
-                }
+            b'X' => {
+                let result = if marker == 1 { 8 } else { 10 };
+                marker = 2;
+
+                result
             }
-            'L' => {
-                if found_x {
-                    found_x = false;
-                    30
-                } else {
-                    50
-                }
+            b'L' => {
+                let result = if marker == 2 { 30 } else { 50 };
+                marker = 0;
+
+                result
             }
-            'C' => {
-                found_c = !found_c;
-                if found_x {
-                    found_x = false;
-                    80
-                } else {
-                    100
-                }
+            b'C' => {
+                let result = if marker == 2 { 80 } else { 100 };
+                marker = 3;
+
+                result
             }
-            'D' => {
-                if found_c {
-                    found_c = false;
-                    300
-                } else {
-                    500
-                }
+            b'D' => {
+                let result = if marker == 3 { 300 } else { 500 };
+                marker = 0;
+
+                result
             }
-            'M' => {
-                if found_c {
-                    found_c = false;
-                    800
-                } else {
-                    1000
-                }
+            b'M' => {
+                let result = if marker == 3 { 800 } else { 1000 };
+                marker = 0;
+
+                result
             }
             _ => panic!("not recognised roman numeral"),
         };
-        println!("Running total {}", total);
     }
 
     total
