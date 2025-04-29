@@ -68,3 +68,87 @@ pub fn destructure() {
         Point { x, y } => println!("On neither axis: ({}, {})", x, y),
     }
 }
+
+enum Color {
+    Rgb(i32, i32, i32),
+    Hsv(i32, i32, i32),
+}
+
+enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+    ChangeColor(Color),
+}
+
+pub fn match_enums() {
+    let msg = Message::ChangeColor(Color::Hsv(0, 160, 250));
+
+    match msg {
+        Message::Quit => println!("Quit"),
+        Message::Move { x, y } => println!("Move to x: {}, y: {}", x, y),
+        Message::Write(text) => println!("Text message: {}", text),
+        Message::ChangeColor(Color::Rgb(h, s, v)) => {
+            println!("Red: {}, Green: {}, Blue: {}", h, s, v)
+        }
+        Message::ChangeColor(Color::Hsv(h, s, v)) => {
+            println!("Hue: {}, Saturation: {}, Value: {}", h, s, v)
+        }
+    }
+}
+
+struct Point3 {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+pub fn match_range() {
+    let origin = Point3 { x: 0, y: 0, z: 0 };
+
+    match origin {
+        Point3 { x, .. } => println!("x is {}", x),
+    }
+
+    let numbers = (2, 4, 8, 16, 32);
+
+    match numbers {
+        (first, .., last) => println!("First: {}, Last: {}", first, last),
+    }
+}
+
+pub fn match_guard() {
+    let num = Some(4);
+
+    match num {
+        Some(x) if x < 5 => println!("less than 5: {}", x),
+        Some(x) => println!("{}", x),
+        None => (),
+    }
+}
+
+pub fn match_shadowing() {
+    let x = Some(5);
+    let y = 10;
+
+    match x {
+        Some(n) if n == y => println!("Matched, n = {}", n),
+        _ => println!("Default case, x = {:?}", x),
+    }
+}
+
+enum Message2 {
+    Hello { id: i32 },
+}
+
+pub fn at_symbol() {
+    let msg = Message2::Hello { id: 5 };
+
+    match msg {
+        Message2::Hello {
+            id: id_variable @ 3..=7,
+        } => println!("Found an id in range: {}", id_variable),
+        Message2::Hello { id: 10..=12 } => println!("Found an id in another range"),
+        Message2::Hello { id } => println!("Found some other id: {}", id),
+    }
+}
