@@ -1,4 +1,5 @@
 import 'package:english_words/english_words.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,9 +16,7 @@ class MyApp extends StatelessWidget {
       create: (context) => MyAppState(),
       child: MaterialApp(
         title: 'Environment Comparison',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
+        theme: FlexThemeData.dark(scheme: FlexScheme.bigStone),
         home: MyHomePage(),
       ),
     );
@@ -68,32 +67,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
+          appBar: AppBar(
+            title: Text("Environment comparison Development | Test"),
+            actions: <Widget>[Icon(Icons.code)],
+          ),
           body: Row(
             children: [
-              SafeArea(
-                child: NavigationRail(
-                  extended: constraints.maxWidth >= 600,
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text("Home"),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.favorite),
-                      label: Text("Favourites"),
-                    ),
-                  ],
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                  },
-                ),
-              ),
               Expanded(
                 child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: Theme.of(context).colorScheme.primary,
                   child: page,
                 ),
               ),
@@ -108,20 +90,54 @@ class _MyHomePageState extends State<MyHomePage> {
 class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text("Card 1"),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate dynamic padding based on available width
+        final double horizontalPadding = constraints.maxWidth > 800
+            ? 50.0
+            : 20.0;
+        final double verticalPadding = constraints.maxHeight > 600
+            ? 50.0
+            : 20.0;
+
+        // Calculate cards per row based on available space
+        final int crossAxisCount = constraints.maxWidth > 600 ? 1 : 1;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            top: verticalPadding,
+            right: horizontalPadding,
+            bottom: verticalPadding,
           ),
-          SizedBox(height: 10),
-          Card(child: Text("Card 2")),
-        ],
-      ),
+          child: GridView.count(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 2.5,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text("Card 1"),
+                ),
+              ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text("Card 2"),
+                ),
+              ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text("Card 3"),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
