@@ -8,6 +8,10 @@ class Repository {
         topicComparisonSummary: topicData,
         shareClassComparisonSummary: shareClassData,
       ),
+      (
+        topicComparisonSummary: topicData,
+        shareClassComparisonSummary: shareClassData,
+      ),
     ];
   }
 

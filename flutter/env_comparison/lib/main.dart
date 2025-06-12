@@ -26,24 +26,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-
-  void getNext() {
-    current = WordPair.random();
-    notifyListeners();
-  }
-
-  var favourites = <WordPair>[];
-
-  void toggleFavourite() {
-    if (favourites.contains(current)) {
-      favourites.remove(current);
-    } else {
-      favourites.add(current);
-    }
-
-    notifyListeners();
-  }
+  ComparisonSummary? currentDetails;
 }
 
 class MyHomePage extends StatefulWidget {
@@ -61,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         page = MainPage();
       case 1:
-        page = FavouritesPage();
+        page = DetailsPage();
       default:
         throw UnimplementedError("no widget at index: $selectedIndex");
     }
@@ -125,13 +108,286 @@ class _MainPageState extends State<MainPage> {
         final double verticalPadding = 20;
 
         // Calculate cards per row based on available space
-        final int crossAxisCount = constraints.maxWidth > 1500 ? 2 : 1;
+        final int crossAxisCount = constraints.maxWidth > 1700 ? 2 : 1;
 
         if (isLoading) {
           return Center(child: CircularProgressIndicator());
         }
 
         if (comparisonData.isEmpty) {
+          return Center(child: Text("No comparison data available"));
+        }
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            top: verticalPadding,
+            right: horizontalPadding,
+            bottom: verticalPadding,
+          ),
+          child: GridView.count(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 2,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            children: comparisonData
+                .map(
+                  (run) => Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "2025-06-10 10:36:00",
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 15),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minWidth: constraints.maxWidth - 60,
+                            ),
+                            child: DataTable(
+                              columnSpacing: 24.0,
+                              horizontalMargin: 12.0,
+                              columns: [
+                                DataColumn(label: Text('Data Type')),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Base/Comparison Adds',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Base/Comparison Mods',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Result Adds',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Result Mods',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Result Dels',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(label: Text('')),
+                              ],
+                              rows: [
+                                buildTopicDataRow(run.topicComparisonSummary),
+                                buildShareClassDataRow(
+                                  run.shareClassComparisonSummary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+DataRow buildTopicDataRow(TopicComparisonSummary topicComparisonSummary) {
+  return DataRow(
+    cells: [
+      DataCell(Text(topicComparisonSummary.dataType)),
+      DataCell(
+        Center(
+          child: Text(
+            "+${topicComparisonSummary.base.where((x) => x.lastChangeType == "ADD").length.toString()} / +${topicComparisonSummary.comparison.where((x) => x.lastChangeType == "ADD").length.toString()}",
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            "~${topicComparisonSummary.base.where((x) => x.lastChangeType == "MOD").length.toString()} / ~${topicComparisonSummary.comparison.where((x) => x.lastChangeType == "MOD").length.toString()}",
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            topicComparisonSummary.result
+                .where((x) => x.action == "ADD")
+                .length
+                .toString(),
+            style: TextStyle(
+              color:
+                  topicComparisonSummary.result
+                      .where((x) => x.action == "ADD")
+                      .isNotEmpty
+                  ? Colors.red
+                  : Colors.green,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            topicComparisonSummary.result
+                .where((x) => x.action == "MOD")
+                .length
+                .toString(),
+            style: TextStyle(
+              color:
+                  topicComparisonSummary.result
+                      .where((x) => x.action == "MOD")
+                      .isNotEmpty
+                  ? Colors.red
+                  : Colors.green,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            topicComparisonSummary.result
+                .where((x) => x.action == "DEL")
+                .length
+                .toString(),
+            style: TextStyle(
+              color:
+                  topicComparisonSummary.result
+                      .where((x) => x.action == "DEL")
+                      .isNotEmpty
+                  ? Colors.red
+                  : Colors.green,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: topicComparisonSummary.result.isEmpty
+              ? Icon(Icons.check, color: Colors.green)
+              : Icon(Icons.error, color: Colors.red),
+        ),
+      ),
+    ],
+  );
+}
+
+DataRow buildShareClassDataRow(
+  ShareClassComparisonSummary shareClassComparisonSummary,
+) {
+  return DataRow(
+    cells: [
+      DataCell(Text(shareClassComparisonSummary.dataType)),
+      DataCell(Center(child: Text("N/A"))),
+      DataCell(Center(child: Text("N/A"))),
+      DataCell(
+        Center(
+          child: Text(
+            shareClassComparisonSummary.result
+                .where((x) => x.action == "ADD")
+                .length
+                .toString(),
+            style: TextStyle(
+              color:
+                  shareClassComparisonSummary.result
+                      .where((x) => x.action == "ADD")
+                      .isNotEmpty
+                  ? Colors.red
+                  : Colors.green,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            shareClassComparisonSummary.result
+                .where((x) => x.action == "MOD")
+                .length
+                .toString(),
+            style: TextStyle(
+              color:
+                  shareClassComparisonSummary.result
+                      .where((x) => x.action == "MOD")
+                      .isNotEmpty
+                  ? Colors.red
+                  : Colors.green,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            shareClassComparisonSummary.result
+                .where((x) => x.action == "DEL")
+                .length
+                .toString(),
+            style: TextStyle(
+              color:
+                  shareClassComparisonSummary.result
+                      .where((x) => x.action == "DEL")
+                      .isNotEmpty
+                  ? Colors.red
+                  : Colors.green,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: shareClassComparisonSummary.result.isEmpty
+              ? Icon(Icons.check, color: Colors.green)
+              : Icon(Icons.error, color: Colors.red),
+        ),
+      ),
+    ],
+  );
+}
+
+class DetailsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate dynamic padding based on available width
+        final double horizontalPadding = constraints.maxWidth > 800
+            ? 50.0
+            : 20.0;
+        final double verticalPadding = 20;
+
+        // Calculate cards per row based on available space
+        final int crossAxisCount = constraints.maxWidth > 1700 ? 2 : 1;
+
+        if (appState.currentDetails == null) {
           return Center(child: Text("No comparison data available"));
         }
 
@@ -175,7 +431,10 @@ class _MainPageState extends State<MainPage> {
                             DataColumn(label: Text('Last Change')),
                             DataColumn(label: Text('Processed')),
                           ],
-                          rows: comparisonData[0].topicComparisonSummary.base
+                          rows: appState
+                              .currentDetails!
+                              .topicComparisonSummary
+                              .base
                               .map(
                                 (item) => DataRow(
                                   cells: [
@@ -221,7 +480,8 @@ class _MainPageState extends State<MainPage> {
                             DataColumn(label: Text('Last Change')),
                             DataColumn(label: Text('Processed')),
                           ],
-                          rows: comparisonData[0]
+                          rows: appState
+                              .currentDetails!
                               .topicComparisonSummary
                               .comparison
                               .map(
@@ -266,7 +526,10 @@ class _MainPageState extends State<MainPage> {
                             DataColumn(label: Text('Currency')),
                             DataColumn(label: Text('Change')),
                           ],
-                          rows: comparisonData[0].topicComparisonSummary.result
+                          rows: appState
+                              .currentDetails!
+                              .topicComparisonSummary
+                              .result
                               .map(
                                 (item) => DataRow(
                                   cells: [
@@ -315,32 +578,6 @@ class BigCard extends StatelessWidget {
           semanticsLabel: "${pair.first}, ${pair.second}",
         ),
       ),
-    );
-  }
-}
-
-class FavouritesPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    if (appState.favourites.isEmpty) {
-      return Center(child: Text("No favourites"));
-    }
-
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text("You have ${appState.favourites.length} favourites"),
-        ),
-        ...appState.favourites.map(
-          (f) => ListTile(
-            title: Text(f.asLowerCase),
-            leading: Icon(Icons.favorite),
-          ),
-        ),
-      ],
     );
   }
 }
