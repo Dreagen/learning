@@ -5,10 +5,12 @@ class Repository {
 
     return [
       (
+        runTime: DateTime.now().add(const Duration(seconds: -1)),
         topicComparisonSummary: topicData,
         shareClassComparisonSummary: shareClassData,
       ),
       (
+        runTime: DateTime.now(),
         topicComparisonSummary: topicData,
         shareClassComparisonSummary: shareClassData,
       ),
@@ -158,6 +160,7 @@ class Repository {
 }
 
 typedef ComparisonSummary = ({
+  DateTime runTime,
   TopicComparisonSummary topicComparisonSummary,
   ShareClassComparisonSummary shareClassComparisonSummary,
 });

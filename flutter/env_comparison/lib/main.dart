@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       create: (context) => MyAppState(),
       child: MaterialApp(
         title: 'Environment Comparison',
-        theme: FlexThemeData.dark(scheme: FlexScheme.bigStone),
+        theme: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
         home: MyHomePage(),
       ),
     );
@@ -39,16 +39,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = MainPage();
-      case 1:
-        page = DetailsPage();
-      default:
-        throw UnimplementedError("no widget at index: $selectedIndex");
-    }
-
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
@@ -61,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Expanded(
                 child: Container(
                   color: Theme.of(context).colorScheme.primary,
-                  child: page,
+                  child: MainPage(),
                 ),
               ),
             ],
@@ -79,7 +69,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final Repository repository = Repository();
-  List<ComparisonSummary> comparisonData = [];
+  var tableData = <DateTime, List<ComparisonSummaryForTable>>{};
   bool isLoading = true;
 
   @override
@@ -90,9 +80,57 @@ class _MainPageState extends State<MainPage> {
 
   Future<void> _loadData() async {
     final data = await repository.getItems();
+    final td = <DateTime, List<ComparisonSummaryForTable>>{};
+
+    for (var comparisonSummary in data) {
+      List<ComparisonSummaryForTable> summariesForTable = [];
+      summariesForTable.add((
+        dataType: comparisonSummary.topicComparisonSummary.dataType,
+        baseAdds: comparisonSummary.topicComparisonSummary.base
+            .where((x) => x.lastChangeType == "ADD")
+            .length,
+        baseMods: comparisonSummary.topicComparisonSummary.base
+            .where((x) => x.lastChangeType == "MOD")
+            .length,
+        comparisonAdds: comparisonSummary.topicComparisonSummary.comparison
+            .where((x) => x.lastChangeType == "ADD")
+            .length,
+        comparisonMods: comparisonSummary.topicComparisonSummary.comparison
+            .where((x) => x.lastChangeType == "MOD")
+            .length,
+        resultAdds: comparisonSummary.topicComparisonSummary.result
+            .where((x) => x.action == "ADD")
+            .length,
+        resultMods: comparisonSummary.topicComparisonSummary.result
+            .where((x) => x.action == "MOD")
+            .length,
+        resultDels: comparisonSummary.topicComparisonSummary.result
+            .where((x) => x.action == "DEL")
+            .length,
+      ));
+
+      summariesForTable.add((
+        dataType: comparisonSummary.shareClassComparisonSummary.dataType,
+        baseAdds: null,
+        baseMods: null,
+        comparisonAdds: null,
+        comparisonMods: null,
+        resultAdds: comparisonSummary.shareClassComparisonSummary.result
+            .where((x) => x.action == "ADD")
+            .length,
+        resultMods: comparisonSummary.shareClassComparisonSummary.result
+            .where((x) => x.action == "MOD")
+            .length,
+        resultDels: comparisonSummary.shareClassComparisonSummary.result
+            .where((x) => x.action == "DEL")
+            .length,
+      ));
+
+      td[comparisonSummary.runTime] = summariesForTable;
+    }
 
     setState(() {
-      comparisonData = data;
+      tableData = td;
       isLoading = false;
     });
   }
@@ -114,7 +152,7 @@ class _MainPageState extends State<MainPage> {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (comparisonData.isEmpty) {
+        if (tableData.isEmpty) {
           return Center(child: Text("No comparison data available"));
         }
 
@@ -130,16 +168,17 @@ class _MainPageState extends State<MainPage> {
             childAspectRatio: 2,
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            children: comparisonData
+            children: tableData.keys
                 .map(
-                  (run) => Card(
+                  (runDateTime) => Card(
+                    elevation: 20,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "2025-06-10 10:36:00",
+                            runDateTime.toString(),
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 15),
@@ -152,6 +191,14 @@ class _MainPageState extends State<MainPage> {
                               horizontalMargin: 12.0,
                               columns: [
                                 DataColumn(label: Text('Data Type')),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Base/Comparison Changes',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
@@ -194,12 +241,11 @@ class _MainPageState extends State<MainPage> {
                                 ),
                                 DataColumn(label: Text('')),
                               ],
-                              rows: [
-                                buildTopicDataRow(run.topicComparisonSummary),
-                                buildShareClassDataRow(
-                                  run.shareClassComparisonSummary,
-                                ),
-                              ],
+                              rows:
+                                  tableData[runDateTime]?.map((td) {
+                                    return buildDataRow(context, td);
+                                  }).toList() ??
+                                  [],
                             ),
                           ),
                         ],
@@ -215,109 +261,65 @@ class _MainPageState extends State<MainPage> {
   }
 }
 
-DataRow buildTopicDataRow(TopicComparisonSummary topicComparisonSummary) {
-  return DataRow(
-    cells: [
-      DataCell(Text(topicComparisonSummary.dataType)),
-      DataCell(
-        Center(
-          child: Text(
-            "+${topicComparisonSummary.base.where((x) => x.lastChangeType == "ADD").length.toString()} / +${topicComparisonSummary.comparison.where((x) => x.lastChangeType == "ADD").length.toString()}",
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: Text(
-            "~${topicComparisonSummary.base.where((x) => x.lastChangeType == "MOD").length.toString()} / ~${topicComparisonSummary.comparison.where((x) => x.lastChangeType == "MOD").length.toString()}",
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: Text(
-            topicComparisonSummary.result
-                .where((x) => x.action == "ADD")
-                .length
-                .toString(),
-            style: TextStyle(
-              color:
-                  topicComparisonSummary.result
-                      .where((x) => x.action == "ADD")
-                      .isNotEmpty
-                  ? Colors.red
-                  : Colors.green,
-            ),
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: Text(
-            topicComparisonSummary.result
-                .where((x) => x.action == "MOD")
-                .length
-                .toString(),
-            style: TextStyle(
-              color:
-                  topicComparisonSummary.result
-                      .where((x) => x.action == "MOD")
-                      .isNotEmpty
-                  ? Colors.red
-                  : Colors.green,
-            ),
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: Text(
-            topicComparisonSummary.result
-                .where((x) => x.action == "DEL")
-                .length
-                .toString(),
-            style: TextStyle(
-              color:
-                  topicComparisonSummary.result
-                      .where((x) => x.action == "DEL")
-                      .isNotEmpty
-                  ? Colors.red
-                  : Colors.green,
-            ),
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: topicComparisonSummary.result.isEmpty
-              ? Icon(Icons.check, color: Colors.green)
-              : Icon(Icons.error, color: Colors.red),
-        ),
-      ),
-    ],
-  );
+typedef ComparisonSummaryForTable = ({
+  String dataType,
+  int? baseAdds,
+  int? comparisonAdds,
+  int? baseMods,
+  int? comparisonMods,
+  int resultAdds,
+  int resultMods,
+  int resultDels,
+});
+
+extension ComparisonSummaryExtension on ComparisonSummaryForTable {
+  bool get isMatching => resultAdds == 0 && resultMods == 0 && resultDels == 0;
 }
 
-DataRow buildShareClassDataRow(
-  ShareClassComparisonSummary shareClassComparisonSummary,
+DataRow buildDataRow(
+  BuildContext context,
+  ComparisonSummaryForTable comparisonSummary,
 ) {
   return DataRow(
+    onSelectChanged: (_) => {},
     cells: [
-      DataCell(Text(shareClassComparisonSummary.dataType)),
-      DataCell(Center(child: Text("N/A"))),
-      DataCell(Center(child: Text("N/A"))),
+      DataCell(Text(comparisonSummary.dataType)),
       DataCell(
         Center(
           child: Text(
-            shareClassComparisonSummary.result
-                .where((x) => x.action == "ADD")
-                .length
-                .toString(),
+            comparisonSummary.baseAdds == null ||
+                    comparisonSummary.comparisonAdds == null
+                ? "N/A"
+                : "${(comparisonSummary.baseAdds! + comparisonSummary.baseMods!).toString()} / ${(comparisonSummary.comparisonAdds! + comparisonSummary.comparisonMods!).toString()}",
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            comparisonSummary.baseAdds == null ||
+                    comparisonSummary.comparisonAdds == null
+                ? "N/A"
+                : "${comparisonSummary.baseAdds.toString()} / ${comparisonSummary.comparisonAdds.toString()}",
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            comparisonSummary.baseMods == null ||
+                    comparisonSummary.comparisonMods == null
+                ? "N/A"
+                : "${comparisonSummary.baseMods.toString()} / ${comparisonSummary.comparisonMods.toString()}",
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: Text(
+            comparisonSummary.resultAdds.toString(),
             style: TextStyle(
-              color:
-                  shareClassComparisonSummary.result
-                      .where((x) => x.action == "ADD")
-                      .isNotEmpty
+              color: comparisonSummary.resultAdds > 0
                   ? Colors.red
                   : Colors.green,
             ),
@@ -327,15 +329,9 @@ DataRow buildShareClassDataRow(
       DataCell(
         Center(
           child: Text(
-            shareClassComparisonSummary.result
-                .where((x) => x.action == "MOD")
-                .length
-                .toString(),
+            comparisonSummary.resultMods.toString(),
             style: TextStyle(
-              color:
-                  shareClassComparisonSummary.result
-                      .where((x) => x.action == "MOD")
-                      .isNotEmpty
+              color: comparisonSummary.resultMods > 0
                   ? Colors.red
                   : Colors.green,
             ),
@@ -345,15 +341,9 @@ DataRow buildShareClassDataRow(
       DataCell(
         Center(
           child: Text(
-            shareClassComparisonSummary.result
-                .where((x) => x.action == "DEL")
-                .length
-                .toString(),
+            comparisonSummary.resultDels.toString(),
             style: TextStyle(
-              color:
-                  shareClassComparisonSummary.result
-                      .where((x) => x.action == "DEL")
-                      .isNotEmpty
+              color: comparisonSummary.resultDels > 0
                   ? Colors.red
                   : Colors.green,
             ),
@@ -362,7 +352,7 @@ DataRow buildShareClassDataRow(
       ),
       DataCell(
         Center(
-          child: shareClassComparisonSummary.result.isEmpty
+          child: comparisonSummary.isMatching
               ? Icon(Icons.check, color: Colors.green)
               : Icon(Icons.error, color: Colors.red),
         ),
@@ -371,11 +361,12 @@ DataRow buildShareClassDataRow(
   );
 }
 
-class DetailsPage extends StatelessWidget {
+class TopicDetailsPage extends StatelessWidget {
+  final TopicComparisonSummary topicComparisonSummary;
+  const TopicDetailsPage({super.key, required this.topicComparisonSummary});
+
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate dynamic padding based on available width
@@ -386,10 +377,6 @@ class DetailsPage extends StatelessWidget {
 
         // Calculate cards per row based on available space
         final int crossAxisCount = constraints.maxWidth > 1700 ? 2 : 1;
-
-        if (appState.currentDetails == null) {
-          return Center(child: Text("No comparison data available"));
-        }
 
         return Padding(
           padding: EdgeInsets.only(
@@ -431,10 +418,7 @@ class DetailsPage extends StatelessWidget {
                             DataColumn(label: Text('Last Change')),
                             DataColumn(label: Text('Processed')),
                           ],
-                          rows: appState
-                              .currentDetails!
-                              .topicComparisonSummary
-                              .base
+                          rows: topicComparisonSummary.base
                               .map(
                                 (item) => DataRow(
                                   cells: [
@@ -480,10 +464,7 @@ class DetailsPage extends StatelessWidget {
                             DataColumn(label: Text('Last Change')),
                             DataColumn(label: Text('Processed')),
                           ],
-                          rows: appState
-                              .currentDetails!
-                              .topicComparisonSummary
-                              .comparison
+                          rows: topicComparisonSummary.comparison
                               .map(
                                 (item) => DataRow(
                                   cells: [
@@ -526,10 +507,7 @@ class DetailsPage extends StatelessWidget {
                             DataColumn(label: Text('Currency')),
                             DataColumn(label: Text('Change')),
                           ],
-                          rows: appState
-                              .currentDetails!
-                              .topicComparisonSummary
-                              .result
+                          rows: topicComparisonSummary.result
                               .map(
                                 (item) => DataRow(
                                   cells: [
