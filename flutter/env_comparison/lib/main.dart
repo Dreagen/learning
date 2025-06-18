@@ -1,4 +1,7 @@
 import 'package:english_words/english_words.dart';
+import 'package:env_comparison/data_mapper.dart';
+import 'package:env_comparison/utils/colors.dart';
+import 'package:env_comparison/widgets/result_chart.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -69,7 +72,8 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final Repository repository = Repository();
-  var tableData = <DateTime, List<ComparisonSummaryForTable>>{};
+  List<ComparisonSummaryForTable> tableData = [];
+  DateTime? runTime;
   bool isLoading = true;
 
   @override
@@ -79,59 +83,14 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _loadData() async {
-    final data = await repository.getItems();
-    final td = <DateTime, List<ComparisonSummaryForTable>>{};
-
-    for (var comparisonSummary in data) {
-      List<ComparisonSummaryForTable> summariesForTable = [];
-      summariesForTable.add((
-        dataType: comparisonSummary.topicComparisonSummary.dataType,
-        baseAdds: comparisonSummary.topicComparisonSummary.base
-            .where((x) => x.lastChangeType == "ADD")
-            .length,
-        baseMods: comparisonSummary.topicComparisonSummary.base
-            .where((x) => x.lastChangeType == "MOD")
-            .length,
-        comparisonAdds: comparisonSummary.topicComparisonSummary.comparison
-            .where((x) => x.lastChangeType == "ADD")
-            .length,
-        comparisonMods: comparisonSummary.topicComparisonSummary.comparison
-            .where((x) => x.lastChangeType == "MOD")
-            .length,
-        resultAdds: comparisonSummary.topicComparisonSummary.result
-            .where((x) => x.action == "ADD")
-            .length,
-        resultMods: comparisonSummary.topicComparisonSummary.result
-            .where((x) => x.action == "MOD")
-            .length,
-        resultDels: comparisonSummary.topicComparisonSummary.result
-            .where((x) => x.action == "DEL")
-            .length,
-      ));
-
-      summariesForTable.add((
-        dataType: comparisonSummary.shareClassComparisonSummary.dataType,
-        baseAdds: null,
-        baseMods: null,
-        comparisonAdds: null,
-        comparisonMods: null,
-        resultAdds: comparisonSummary.shareClassComparisonSummary.result
-            .where((x) => x.action == "ADD")
-            .length,
-        resultMods: comparisonSummary.shareClassComparisonSummary.result
-            .where((x) => x.action == "MOD")
-            .length,
-        resultDels: comparisonSummary.shareClassComparisonSummary.result
-            .where((x) => x.action == "DEL")
-            .length,
-      ));
-
-      td[comparisonSummary.runTime] = summariesForTable;
-    }
+    final data = await repository.getLatest();
 
     setState(() {
-      tableData = td;
+      tableData = DataMapper().mapFromComparisonSummary(data);
+      runTime = data.runTime;
       isLoading = false;
+
+      print("runTime $runTime");
     });
   }
 
@@ -139,15 +98,6 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate dynamic padding based on available width
-        final double horizontalPadding = constraints.maxWidth > 800
-            ? 50.0
-            : 20.0;
-        final double verticalPadding = 20;
-
-        // Calculate cards per row based on available space
-        final int crossAxisCount = constraints.maxWidth > 1700 ? 2 : 1;
-
         if (isLoading) {
           return Center(child: CircularProgressIndicator());
         }
@@ -157,103 +107,88 @@ class _MainPageState extends State<MainPage> {
         }
 
         return Padding(
-          padding: EdgeInsets.only(
-            left: horizontalPadding,
-            top: verticalPadding,
-            right: horizontalPadding,
-            bottom: verticalPadding,
-          ),
-          child: GridView.count(
-            crossAxisCount: crossAxisCount,
-            childAspectRatio: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            children: tableData.keys
-                .map(
-                  (runDateTime) => Card(
-                    elevation: 20,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            runDateTime.toString(),
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 15),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minWidth: constraints.maxWidth - 60,
-                            ),
-                            child: DataTable(
-                              columnSpacing: 24.0,
-                              horizontalMargin: 12.0,
-                              columns: [
-                                DataColumn(label: Text('Data Type')),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Base/Comparison Changes',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Base/Comparison Adds',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Base/Comparison Mods',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Result Adds',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Result Mods',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Result Dels',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(label: Text('')),
-                              ],
-                              rows:
-                                  tableData[runDateTime]?.map((td) {
-                                    return buildDataRow(context, td);
-                                  }).toList() ??
-                                  [],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+          padding: EdgeInsets.all(20),
+          child: Card(
+            elevation: 20,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    runTime.toString(),
+                    // "testing",
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                )
-                .toList(),
+                  const SizedBox(height: 15),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: 0.75 * (constraints.maxWidth - 60),
+                          ),
+                          child: DataTable(
+                            columnSpacing: 24.0,
+                            horizontalMargin: 12.0,
+                            columns: [
+                              DataColumn(label: Text('Data Type')),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Base Changes',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Comparison Changes',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Result Adds',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Result Mods',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Result Dels',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(label: Text('')),
+                            ],
+                            rows: tableData.map((td) {
+                              return buildDataRow(context, td);
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                      Expanded(flex: 1, child: ResultChart()),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -263,10 +198,8 @@ class _MainPageState extends State<MainPage> {
 
 typedef ComparisonSummaryForTable = ({
   String dataType,
-  int? baseAdds,
-  int? comparisonAdds,
-  int? baseMods,
-  int? comparisonMods,
+  int baseChanges,
+  int comparisonChanges,
   int resultAdds,
   int resultMods,
   int resultDels,
@@ -284,35 +217,9 @@ DataRow buildDataRow(
     onSelectChanged: (_) => {},
     cells: [
       DataCell(Text(comparisonSummary.dataType)),
+      DataCell(Center(child: Text(comparisonSummary.baseChanges.toString()))),
       DataCell(
-        Center(
-          child: Text(
-            comparisonSummary.baseAdds == null ||
-                    comparisonSummary.comparisonAdds == null
-                ? "N/A"
-                : "${(comparisonSummary.baseAdds! + comparisonSummary.baseMods!).toString()} / ${(comparisonSummary.comparisonAdds! + comparisonSummary.comparisonMods!).toString()}",
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: Text(
-            comparisonSummary.baseAdds == null ||
-                    comparisonSummary.comparisonAdds == null
-                ? "N/A"
-                : "${comparisonSummary.baseAdds.toString()} / ${comparisonSummary.comparisonAdds.toString()}",
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: Text(
-            comparisonSummary.baseMods == null ||
-                    comparisonSummary.comparisonMods == null
-                ? "N/A"
-                : "${comparisonSummary.baseMods.toString()} / ${comparisonSummary.comparisonMods.toString()}",
-          ),
-        ),
+        Center(child: Text(comparisonSummary.comparisonChanges.toString())),
       ),
       DataCell(
         Center(
@@ -320,8 +227,8 @@ DataRow buildDataRow(
             comparisonSummary.resultAdds.toString(),
             style: TextStyle(
               color: comparisonSummary.resultAdds > 0
-                  ? Colors.red
-                  : Colors.green,
+                  ? AppColors.add
+                  : Colors.white,
             ),
           ),
         ),
@@ -332,8 +239,8 @@ DataRow buildDataRow(
             comparisonSummary.resultMods.toString(),
             style: TextStyle(
               color: comparisonSummary.resultMods > 0
-                  ? Colors.red
-                  : Colors.green,
+                  ? AppColors.mod
+                  : Colors.white,
             ),
           ),
         ),
@@ -344,8 +251,8 @@ DataRow buildDataRow(
             comparisonSummary.resultDels.toString(),
             style: TextStyle(
               color: comparisonSummary.resultDels > 0
-                  ? Colors.red
-                  : Colors.green,
+                  ? AppColors.del
+                  : Colors.white,
             ),
           ),
         ),

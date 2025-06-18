@@ -1,20 +1,13 @@
 class Repository {
-  Future<List<ComparisonSummary>> getItems() async {
+  Future<ComparisonSummary> getLatest() async {
     var topicData = createFakeTopicComparison();
     var shareClassData = createFakeShareClassData();
 
-    return [
-      (
-        runTime: DateTime.now().add(const Duration(seconds: -1)),
-        topicComparisonSummary: topicData,
-        shareClassComparisonSummary: shareClassData,
-      ),
-      (
-        runTime: DateTime.now(),
-        topicComparisonSummary: topicData,
-        shareClassComparisonSummary: shareClassData,
-      ),
-    ];
+    return (
+      runTime: DateTime.now().add(const Duration(seconds: -1)),
+      topicComparisonSummary: topicData,
+      shareClassComparisonSummary: shareClassData,
+    );
   }
 
   TopicComparisonSummary createFakeTopicComparison() {
@@ -78,7 +71,7 @@ class Repository {
       lastChangeProcessed: 'false',
     );
 
-    final comparisonResult1 = (
+    final comparisonModResult1 = (
       action: 'MOD',
       isinCode: 'LU1227550453',
       currency: 'EUR',
@@ -87,7 +80,7 @@ class Repository {
       lastChangeProcessed: 'DIFF(true->false)',
     );
 
-    final comparisonResult2 = (
+    final comparisonModResult2 = (
       action: 'MOD',
       isinCode: 'LU2407564710',
       currency: 'USD',
@@ -96,7 +89,7 @@ class Repository {
       lastChangeProcessed: 'DIFF(true->false)',
     );
 
-    final comparisonResult3 = (
+    final comparisonModResult3 = (
       action: 'MOD',
       isinCode: 'LU0808551500',
       currency: 'EUR',
@@ -109,7 +102,11 @@ class Repository {
       dataType: "topic",
       base: [base1, base2, base3],
       comparison: [comparison1, comparison2, comparison3],
-      result: [comparisonResult1, comparisonResult2, comparisonResult3],
+      result: [
+        comparisonModResult1,
+        comparisonModResult2,
+        comparisonModResult3,
+      ],
     );
   }
 
@@ -150,11 +147,18 @@ class Repository {
           '{"cod_isin":"LU2407564710","inst_scrnam":"Class A","inst_scrsts":"Dormant","scrcry":"USD"}',
     );
 
+    final comparisonResult1 = (
+      action: 'ADD',
+      isinCode: 'LU2407564710',
+      mappedJson:
+          '{"cod_isin":"LU2407564710","inst_scrnam":"Class A","inst_scrsts":"Dormant","scrcry":"USD"}',
+    );
+
     return (
       dataType: "share class",
       base: [base1, base2, base3],
       comparison: [comparison1, comparison2, comparison3],
-      result: [], // Empty list as requested
+      result: [comparisonResult1],
     );
   }
 }
