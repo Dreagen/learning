@@ -23,6 +23,8 @@ class ResultChartState extends State<ResultChart> {
         text = 'Topic';
       case 1:
         text = 'Share Class';
+      case 2:
+        text = 'Media Outlet Map';
       default:
         text = 'Default';
     }
@@ -79,13 +81,13 @@ class ResultChartState extends State<ResultChart> {
           ),
         ),
         AspectRatio(
-          aspectRatio: 2,
+          aspectRatio: 3,
           child: Padding(
             padding: const EdgeInsets.only(top: 16, left: 50),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final barsSpace = 4.0 * constraints.maxWidth / 100;
-                final barsWidth = 8.0 * constraints.maxWidth / 300;
+                final barsWidth = 8.0 * constraints.maxWidth / 400;
                 return BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.start,
@@ -167,10 +169,28 @@ class ResultChartState extends State<ResultChart> {
         x: 1,
         showingTooltipIndicators: [0],
         barsSpace: barsSpace,
+        barRods: [],
+      ),
+      BarChartGroupData(
+        x: 2,
+        barsSpace: 5,
+        showingTooltipIndicators: [2],
         barRods: [
           BarChartRodData(
-            toY: 1,
-            rodStackItems: [BarChartRodStackItem(0, 1, AppColors.add)],
+            toY: 0,
+            rodStackItems: [BarChartRodStackItem(0, 0, AppColors.add)],
+            borderRadius: BorderRadius.zero,
+            width: barsWidth,
+          ),
+          BarChartRodData(
+            toY: 0,
+            rodStackItems: [BarChartRodStackItem(0, 0, AppColors.mod)],
+            borderRadius: BorderRadius.zero,
+            width: barsWidth,
+          ),
+          BarChartRodData(
+            toY: 6,
+            rodStackItems: [BarChartRodStackItem(0, 6, AppColors.del)],
             borderRadius: BorderRadius.zero,
             width: barsWidth,
           ),

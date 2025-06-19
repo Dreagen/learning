@@ -1,5 +1,6 @@
 import 'package:english_words/english_words.dart';
 import 'package:env_comparison/data_mapper.dart';
+import 'package:env_comparison/topics/topic_comparison_summary.dart';
 import 'package:env_comparison/utils/colors.dart';
 import 'package:env_comparison/widgets/result_chart.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
@@ -125,7 +126,7 @@ class _MainPageState extends State<MainPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        flex: 3,
+                        flex: 4,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                             minWidth: 0.75 * (constraints.maxWidth - 60),
@@ -183,7 +184,7 @@ class _MainPageState extends State<MainPage> {
                           ),
                         ),
                       ),
-                      Expanded(flex: 1, child: ResultChart()),
+                      Expanded(flex: 2, child: ResultChart()),
                     ],
                   ),
                 ],

@@ -39,6 +39,22 @@ class DataMapper {
           .length,
     ));
 
+    dataForTable.add((
+      dataType: summary.mediaOutletMapComparisonSummary.dataType,
+      baseChanges: summary.mediaOutletMapComparisonSummary.base.length,
+      comparisonChanges:
+          summary.mediaOutletMapComparisonSummary.comparison.length,
+      resultAdds: summary.mediaOutletMapComparisonSummary.result
+          .where((x) => x.action == "ADD")
+          .length,
+      resultMods: summary.mediaOutletMapComparisonSummary.result
+          .where((x) => x.action == "MOD")
+          .length,
+      resultDels: summary.mediaOutletMapComparisonSummary.result
+          .where((x) => x.action == "DEL")
+          .length,
+    ));
+
     return dataForTable.toList();
   }
 }
