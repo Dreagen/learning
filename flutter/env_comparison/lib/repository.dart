@@ -154,18 +154,11 @@ class Repository {
           '{"cod_isin":"LU2407564710","inst_scrnam":"Class A","inst_scrsts":"Dormant","scrcry":"USD"}',
     );
 
-    final comparisonResult1 = (
-      action: 'ADD',
-      isinCode: 'LU2407564710',
-      mappedJson:
-          '{"cod_isin":"LU2407564710","inst_scrnam":"Class A","inst_scrsts":"Dormant","scrcry":"USD"}',
-    );
-
     return (
       dataType: "Share Class",
       base: [base1, base2, base3],
       comparison: [comparison1, comparison2, comparison3],
-      result: [comparisonResult1],
+      result: [],
     );
   }
 
