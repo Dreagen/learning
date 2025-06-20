@@ -184,7 +184,10 @@ class _MainPageState extends State<MainPage> {
                           ),
                         ),
                       ),
-                      Expanded(flex: 2, child: ResultChart()),
+                      Expanded(
+                        flex: 2,
+                        child: ResultChart(chartData: tableData),
+                      ),
                     ],
                   ),
                 ],

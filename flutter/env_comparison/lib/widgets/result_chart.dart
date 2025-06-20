@@ -1,20 +1,17 @@
+import 'package:env_comparison/main.dart';
 import 'package:env_comparison/utils/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 
-class ResultChart extends StatefulWidget {
-  ResultChart({super.key});
+class ResultChart extends StatelessWidget {
+  final List<ComparisonSummaryForTable>? chartData;
+  ResultChart({super.key, this.chartData});
 
   final Color dark = Colors.cyan.darken(60);
   final Color normal = Colors.cyan.darken(30);
   final Color light = Colors.cyan;
 
-  @override
-  State<StatefulWidget> createState() => ResultChartState();
-}
-
-class ResultChartState extends State<ResultChart> {
   Widget bottomTitles(double value, TitleMeta meta) {
     const style = TextStyle(fontSize: 10);
     String text;
@@ -90,7 +87,7 @@ class ResultChartState extends State<ResultChart> {
                 final barsWidth = 8.0 * constraints.maxWidth / 400;
                 return BarChart(
                   BarChartData(
-                    alignment: BarChartAlignment.start,
+                    alignment: BarChartAlignment.center,
                     barTouchData: const BarTouchData(enabled: false),
                     titlesData: FlTitlesData(
                       show: true,
@@ -146,20 +143,12 @@ class ResultChartState extends State<ResultChart> {
         showingTooltipIndicators: [0, 1, 2],
         barRods: [
           BarChartRodData(
-            toY: 1,
-            rodStackItems: [BarChartRodStackItem(0, 1, AppColors.add)],
-            borderRadius: BorderRadius.zero,
-            width: barsWidth,
-          ),
-          BarChartRodData(
-            toY: 3,
-            rodStackItems: [BarChartRodStackItem(0, 3, AppColors.mod)],
-            borderRadius: BorderRadius.zero,
-            width: barsWidth,
-          ),
-          BarChartRodData(
-            toY: 2,
-            rodStackItems: [BarChartRodStackItem(0, 2, AppColors.del)],
+            toY: 6,
+            rodStackItems: [
+              BarChartRodStackItem(0, 1, AppColors.add),
+              BarChartRodStackItem(1, 4, AppColors.mod),
+              BarChartRodStackItem(4, 6, AppColors.del),
+            ],
             borderRadius: BorderRadius.zero,
             width: barsWidth,
           ),
