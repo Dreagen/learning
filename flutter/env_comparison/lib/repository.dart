@@ -3,8 +3,15 @@ import 'package:env_comparison/topics/topic_comparison_summary.dart';
 
 import 'media_outlets/media_outlet_map_comparison_summary.dart';
 
+typedef BatchComparisonSummary = ({
+  DateTime runTime,
+  TopicComparisonSummary topicComparisonSummary,
+  ShareClassComparisonSummary shareClassComparisonSummary,
+  MediaOutletMapComparisonSummary mediaOutletMapComparisonSummary,
+});
+
 class Repository {
-  Future<ComparisonSummary> getLatest() async {
+  Future<BatchComparisonSummary> getLatest() async {
     var topicData = createFakeTopicComparisonData();
     var shareClassData = createFakeShareClassComparisonData();
     var mediaOutletMapData = createFakeMediaOutletMapDataComparisonData();
@@ -18,7 +25,7 @@ class Repository {
   }
 
   TopicComparisonSummary createFakeTopicComparisonData() {
-    final base1 = (
+    final TopicComparison base1 = (
       isinCode: 'LU0808551500',
       currency: 'EUR',
       clientId: 'FECC23FA-5D41-4156-A170-91D7A6F3C7BB',
@@ -28,7 +35,7 @@ class Repository {
       lastChangeProcessed: 'true',
     );
 
-    final base2 = (
+    final TopicComparison base2 = (
       isinCode: 'LU1227550453',
       currency: 'EUR',
       clientId: 'FECC23FA-5D41-4156-A170-91D7A6F3C7BB',
@@ -38,7 +45,7 @@ class Repository {
       lastChangeProcessed: 'true',
     );
 
-    final base3 = (
+    final TopicComparison base3 = (
       isinCode: 'LU2407564710',
       currency: 'USD',
       clientId: 'FECC23FA-5D41-4156-A170-91D7A6F3C7BB',
@@ -48,7 +55,7 @@ class Repository {
       lastChangeProcessed: 'true',
     );
 
-    final comparison1 = (
+    final TopicComparison comparison1 = (
       isinCode: 'LU0808551500',
       currency: 'EUR',
       clientId: 'FECC23FA-5D41-4156-A170-91D7A6F3C7BB',
@@ -58,7 +65,7 @@ class Repository {
       lastChangeProcessed: 'false',
     );
 
-    final comparison2 = (
+    final TopicComparison comparison2 = (
       isinCode: 'LU1227550453',
       currency: 'EUR',
       clientId: 'FECC23FA-5D41-4156-A170-91D7A6F3C7BB',
@@ -68,7 +75,7 @@ class Repository {
       lastChangeProcessed: 'false',
     );
 
-    final comparison3 = (
+    final TopicComparison comparison3 = (
       isinCode: 'LU2407564710',
       currency: 'USD',
       clientId: 'FECC23FA-5D41-4156-A170-91D7A6F3C7BB',
@@ -78,7 +85,7 @@ class Repository {
       lastChangeProcessed: 'false',
     );
 
-    final comparisonModResult1 = (
+    final TopicComparisonResult comparisonModResult1 = (
       action: 'MOD',
       isinCode: 'LU1227550453',
       currency: 'EUR',
@@ -87,7 +94,7 @@ class Repository {
       lastChangeProcessed: 'DIFF(true->false)',
     );
 
-    final comparisonModResult2 = (
+    final TopicComparisonResult comparisonModResult2 = (
       action: 'MOD',
       isinCode: 'LU2407564710',
       currency: 'USD',
@@ -96,7 +103,7 @@ class Repository {
       lastChangeProcessed: 'DIFF(true->false)',
     );
 
-    final comparisonModResult3 = (
+    final TopicComparisonResult comparisonModResult3 = (
       action: 'MOD',
       isinCode: 'LU0808551500',
       currency: 'EUR',
@@ -118,37 +125,37 @@ class Repository {
   }
 
   ShareClassComparisonSummary createFakeShareClassComparisonData() {
-    final base1 = (
+    final ShareClassComparison base1 = (
       isinCode: 'LU0808551500',
       mappedJson:
           '{"cod_isin":"LU0808551500","inst_scrnam":"Class EUR Shares","inst_scrsts":"Dormant","scrcry":"EUR"}',
     );
 
-    final base2 = (
+    final ShareClassComparison base2 = (
       isinCode: 'LU1227550453',
       mappedJson:
           '{"cod_isin":"LU1227550453","inst_scrnam":"Ordinary Shares","inst_scrsts":"Dormant","scrcry":"EUR"}',
     );
 
-    final base3 = (
+    final ShareClassComparison base3 = (
       isinCode: 'LU2407564710',
       mappedJson:
           '{"cod_isin":"LU2407564710","inst_scrnam":"Class A","inst_scrsts":"Dormant","scrcry":"USD"}',
     );
 
-    final comparison1 = (
+    final ShareClassComparison comparison1 = (
       isinCode: 'LU0808551500',
       mappedJson:
           '{"cod_isin":"LU0808551500","inst_scrnam":"Class EUR Shares","inst_scrsts":"Dormant","scrcry":"EUR"}',
     );
 
-    final comparison2 = (
+    final ShareClassComparison comparison2 = (
       isinCode: 'LU1227550453',
       mappedJson:
           '{"cod_isin":"LU1227550453","inst_scrnam":"Ordinary Shares","inst_scrsts":"Dormant","scrcry":"EUR"}',
     );
 
-    final comparison3 = (
+    final ShareClassComparison comparison3 = (
       isinCode: 'LU2407564710',
       mappedJson:
           '{"cod_isin":"LU2407564710","inst_scrnam":"Class A","inst_scrsts":"Dormant","scrcry":"USD"}',
@@ -172,7 +179,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final base2 = (
+    final MediaOutletMapComparison base2 = (
       mediaOutletName: 'WertpapierMitteilungen',
       isinCode: 'LU0808551500',
       currency: 'EUR',
@@ -181,7 +188,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final base3 = (
+    final MediaOutletMapComparison base3 = (
       mediaOutletName: 'Morningstar',
       isinCode: 'LU1227550453',
       currency: 'EUR',
@@ -190,7 +197,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final base4 = (
+    final MediaOutletMapComparison base4 = (
       mediaOutletName: 'Morningstar',
       isinCode: 'LU0808551500',
       currency: 'EUR',
@@ -199,7 +206,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final base5 = (
+    final MediaOutletMapComparison base5 = (
       mediaOutletName: 'WertpapierMitteilungen',
       isinCode: 'LU2407564710',
       currency: 'USD',
@@ -208,7 +215,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final base6 = (
+    final MediaOutletMapComparison base6 = (
       mediaOutletName: 'WertpapierMitteilungen',
       isinCode: 'LU1227550453',
       currency: 'EUR',
@@ -217,7 +224,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final comparisonResult1 = (
+    final MediaOutletMapComparisonResult comparisonResult1 = (
       action: 'DEL',
       mediaOutletName: 'Morningstar',
       isinCode: 'LU1227550453',
@@ -227,7 +234,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final comparisonResult2 = (
+    final MediaOutletMapComparisonResult comparisonResult2 = (
       action: 'DEL',
       mediaOutletName: 'Morningstar',
       isinCode: 'LU0808551500',
@@ -237,7 +244,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final comparisonResult3 = (
+    final MediaOutletMapComparisonResult comparisonResult3 = (
       action: 'DEL',
       mediaOutletName: 'WertpapierMitteilungen',
       isinCode: 'LU0808551500',
@@ -247,7 +254,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final comparisonResult4 = (
+    final MediaOutletMapComparisonResult comparisonResult4 = (
       action: 'DEL',
       mediaOutletName: 'WertpapierMitteilungen',
       isinCode: 'LU2407564710',
@@ -257,7 +264,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final comparisonResult5 = (
+    final MediaOutletMapComparisonResult comparisonResult5 = (
       action: 'DEL',
       mediaOutletName: 'WertpapierMitteilungen',
       isinCode: 'LU1227550453',
@@ -267,7 +274,7 @@ class Repository {
       cancellationReason: null,
     );
 
-    final comparisonResult6 = (
+    final MediaOutletMapComparisonResult comparisonResult6 = (
       action: 'DEL',
       mediaOutletName: 'Morningstar',
       isinCode: 'LU2407564710',
@@ -292,10 +299,3 @@ class Repository {
     );
   }
 }
-
-typedef ComparisonSummary = ({
-  DateTime runTime,
-  TopicComparisonSummary topicComparisonSummary,
-  ShareClassComparisonSummary shareClassComparisonSummary,
-  MediaOutletMapComparisonSummary mediaOutletMapComparisonSummary,
-});

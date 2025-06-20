@@ -5,7 +5,7 @@ import 'package:env_comparison/repository.dart';
 
 class DataMapper {
   List<ComparisonSummaryForTable> mapFromComparisonSummary(
-    ComparisonSummary summary,
+    BatchComparisonSummary summary,
   ) {
     var dataForTable = <ComparisonSummaryForTable>{};
 

@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  ComparisonSummary? currentDetails;
+  BatchComparisonSummary? currentDetails;
 }
 
 class MyHomePage extends StatefulWidget {
