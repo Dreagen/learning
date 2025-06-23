@@ -112,6 +112,15 @@ class Repository {
       lastChangeProcessed: 'DIFF(true->false)',
     );
 
+    final TopicComparisonResult comparisonDelResult4 = (
+      action: 'DEL',
+      isinCode: 'LU0808551500',
+      currency: 'EUR',
+      mappedJson: '{"pubcry":"EUR"}',
+      lastChangeType: 'ADD',
+      lastChangeProcessed: 'DIFF(true->false)',
+    );
+
     return (
       dataType: "Topic",
       base: [base1, base2, base3],
@@ -120,6 +129,7 @@ class Repository {
         comparisonModResult1,
         comparisonModResult2,
         comparisonModResult3,
+        comparisonDelResult4,
       ],
     );
   }
@@ -162,7 +172,7 @@ class Repository {
     );
 
     return (
-      dataType: "Share Class",
+      dataType: "ShareClass",
       base: [base1, base2, base3],
       comparison: [comparison1, comparison2, comparison3],
       result: [],
@@ -285,7 +295,7 @@ class Repository {
     );
 
     return (
-      dataType: "Media Outlet Map",
+      dataType: "MediaOutletMap",
       base: [base1, base2, base3, base4, base5, base6],
       comparison: [],
       result: [

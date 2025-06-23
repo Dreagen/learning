@@ -1,11 +1,16 @@
-import 'package:env_comparison/main.dart';
 import 'package:env_comparison/utils/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 
+typedef ChartData = ({
+  Map<String, int> adds,
+  Map<String, int> mods,
+  Map<String, int> dels,
+});
+
 class ResultChart extends StatelessWidget {
-  final List<ComparisonSummaryForTable>? chartData;
+  final ChartData? chartData;
   ResultChart({super.key, this.chartData});
 
   final Color dark = Colors.cyan.darken(60);
@@ -17,11 +22,11 @@ class ResultChart extends StatelessWidget {
     String text;
     switch (value.toInt()) {
       case 0:
-        text = 'Topic';
+        text = 'Adds';
       case 1:
-        text = 'Share Class';
+        text = 'Mods';
       case 2:
-        text = 'Media Outlet Map';
+        text = 'Dels';
       default:
         text = 'Default';
     }
@@ -53,25 +58,29 @@ class ResultChart extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(width: 10, height: 10, color: AppColors.add),
+                  Container(width: 10, height: 10, color: AppColors.shareClass),
                   SizedBox(width: 5),
-                  Text('Adds', style: TextStyle(fontSize: 12)),
+                  Text('Share class', style: TextStyle(fontSize: 12)),
                 ],
               ),
               SizedBox(height: 8),
               Row(
                 children: [
-                  Container(width: 10, height: 10, color: AppColors.mod),
+                  Container(width: 10, height: 10, color: AppColors.topic),
                   SizedBox(width: 5),
-                  Text('Mods', style: TextStyle(fontSize: 12)),
+                  Text('Topic', style: TextStyle(fontSize: 12)),
                 ],
               ),
               SizedBox(height: 8),
               Row(
                 children: [
-                  Container(width: 10, height: 10, color: AppColors.del),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    color: AppColors.mediaOutlet,
+                  ),
                   SizedBox(width: 5),
-                  Text('Dels', style: TextStyle(fontSize: 12)),
+                  Text('Media outlet', style: TextStyle(fontSize: 12)),
                 ],
               ),
             ],
@@ -83,8 +92,8 @@ class ResultChart extends StatelessWidget {
             padding: const EdgeInsets.only(top: 16, left: 50),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final barsSpace = 4.0 * constraints.maxWidth / 100;
-                final barsWidth = 8.0 * constraints.maxWidth / 400;
+                final barsSpace = 4.0 * constraints.maxWidth / 400;
+                final barsWidth = 16.0 * constraints.maxWidth / 400;
                 return BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.center,
@@ -123,7 +132,7 @@ class ResultChart extends StatelessWidget {
                     ),
                     borderData: FlBorderData(show: false),
                     // groupsSpace: barsSpace,
-                    groupsSpace: 50,
+                    groupsSpace: 10,
                     barGroups: getData(barsWidth, barsSpace),
                   ),
                 );
@@ -136,19 +145,27 @@ class ResultChart extends StatelessWidget {
   }
 
   List<BarChartGroupData> getData(double barsWidth, double barsSpace) {
+    var addsCurrent = 0.0;
+    var modsCurrent = 0.0;
+    var delsCurrent = 0.0;
     return [
       BarChartGroupData(
         x: 0,
-        barsSpace: 5,
-        showingTooltipIndicators: [0, 1, 2],
+        barsSpace: barsSpace,
+        showingTooltipIndicators: [],
         barRods: [
           BarChartRodData(
-            toY: 6,
-            rodStackItems: [
-              BarChartRodStackItem(0, 1, AppColors.add),
-              BarChartRodStackItem(1, 4, AppColors.mod),
-              BarChartRodStackItem(4, 6, AppColors.del),
-            ],
+            toY: chartData!.adds.values.fold(0, (sum, elem) => sum + elem),
+            rodStackItems: chartData!.adds.entries.map((x) {
+              var rodStackItem = BarChartRodStackItem(
+                addsCurrent,
+                addsCurrent + x.value,
+                getColorForDataType(x.key),
+              );
+              addsCurrent += x.value;
+
+              return rodStackItem;
+            }).toList(),
             borderRadius: BorderRadius.zero,
             width: barsWidth,
           ),
@@ -156,35 +173,57 @@ class ResultChart extends StatelessWidget {
       ),
       BarChartGroupData(
         x: 1,
-        showingTooltipIndicators: [0],
         barsSpace: barsSpace,
-        barRods: [],
+        showingTooltipIndicators: [],
+        barRods: [
+          BarChartRodData(
+            toY: chartData!.mods.values.fold(0, (sum, elem) => sum + elem),
+            rodStackItems: chartData!.mods.entries.map((x) {
+              var rodStackItem = BarChartRodStackItem(
+                modsCurrent,
+                modsCurrent + x.value,
+                getColorForDataType(x.key),
+              );
+
+              modsCurrent += x.value;
+              return rodStackItem;
+            }).toList(),
+            borderRadius: BorderRadius.zero,
+            width: barsWidth,
+          ),
+        ],
       ),
       BarChartGroupData(
         x: 2,
-        barsSpace: 5,
-        showingTooltipIndicators: [2],
+        barsSpace: barsSpace,
+        showingTooltipIndicators: [],
         barRods: [
           BarChartRodData(
-            toY: 0,
-            rodStackItems: [BarChartRodStackItem(0, 0, AppColors.add)],
-            borderRadius: BorderRadius.zero,
-            width: barsWidth,
-          ),
-          BarChartRodData(
-            toY: 0,
-            rodStackItems: [BarChartRodStackItem(0, 0, AppColors.mod)],
-            borderRadius: BorderRadius.zero,
-            width: barsWidth,
-          ),
-          BarChartRodData(
-            toY: 6,
-            rodStackItems: [BarChartRodStackItem(0, 6, AppColors.del)],
+            toY: chartData!.dels.values.fold(0, (sum, elem) => sum + elem),
+            rodStackItems: chartData!.dels.entries.map((x) {
+              var rodStackItem = BarChartRodStackItem(
+                delsCurrent,
+                delsCurrent + x.value,
+                getColorForDataType(x.key),
+              );
+
+              delsCurrent += x.value;
+              return rodStackItem;
+            }).toList(),
             borderRadius: BorderRadius.zero,
             width: barsWidth,
           ),
         ],
       ),
     ];
+  }
+
+  Color getColorForDataType(String key) {
+    return switch (key.toLowerCase()) {
+      'topic' => AppColors.topic,
+      'shareclass' => AppColors.shareClass,
+      'mediaoutletmap' => AppColors.mediaOutlet,
+      _ => Colors.green,
+    };
   }
 }

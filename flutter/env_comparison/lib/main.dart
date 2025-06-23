@@ -186,7 +186,9 @@ class _MainPageState extends State<MainPage> {
                       ),
                       Expanded(
                         flex: 2,
-                        child: ResultChart(chartData: tableData),
+                        child: ResultChart(
+                          chartData: mapToChartData(tableData),
+                        ),
                       ),
                     ],
                   ),
@@ -198,6 +200,35 @@ class _MainPageState extends State<MainPage> {
       },
     );
   }
+}
+
+ChartData mapToChartData(List<ComparisonSummaryForTable> tableData) {
+  ChartData chartData = (
+    adds: <String, int>{},
+    mods: <String, int>{},
+    dels: <String, int>{},
+  );
+
+  for (var x in tableData) {
+    chartData.adds[x.dataType] = x.resultAdds;
+    chartData.mods[x.dataType] = x.resultMods;
+    chartData.dels[x.dataType] = x.resultDels;
+  }
+
+  printChartData(chartData);
+  return chartData;
+}
+
+void printChartData(ChartData data) {
+  print('===== Chart Data =====');
+  print('ADDS: ${_formatMap(data.adds)}');
+  print('MODS: ${_formatMap(data.mods)}');
+  print('DELS: ${_formatMap(data.dels)}');
+  print('=====================');
+}
+
+String _formatMap(Map<String, int> map) {
+  return map.entries.map((e) => '${e.key}: ${e.value}').join(', ');
 }
 
 typedef ComparisonSummaryForTable = ({

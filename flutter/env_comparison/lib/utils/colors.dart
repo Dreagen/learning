@@ -4,6 +4,10 @@ class AppColors {
   static Color add = Color.fromRGBO(167, 209, 171, 1);
   static Color mod = Color.fromRGBO(255, 193, 204, 1);
   static Color del = Color.fromRGBO(130, 38, 89, 1);
+
+  static Color topic = Color.fromRGBO(167, 209, 171, 1);
+  static Color shareClass = Color.fromRGBO(255, 193, 204, 1);
+  static Color mediaOutlet = Color.fromRGBO(130, 38, 89, 1);
 }
 
 extension HexColor on Color {
