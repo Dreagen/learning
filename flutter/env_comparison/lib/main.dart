@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
     var theme = FlexThemeData.dark(scheme: FlexScheme.bigStone);
 
     theme = theme.copyWith(
-      textTheme: GoogleFonts.spaceGroteskTextTheme(theme.textTheme),
+      textTheme: GoogleFonts.ubuntuTextTheme(theme.textTheme),
     );
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
@@ -122,7 +122,7 @@ class _MainPageState extends State<MainPage> {
           child: ListView(
             children: runData.entries.map((tableData) {
               return Banner(
-                message: 'batch ${tableData.key + 1}',
+                message: 'BATCH ${tableData.key + 1}',
                 location: BannerLocation.topEnd,
                 color: Colors.purple,
                 child: Card(
@@ -134,7 +134,6 @@ class _MainPageState extends State<MainPage> {
                       children: [
                         Text(
                           runTime.toString(),
-                          // "testing",
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 15),
