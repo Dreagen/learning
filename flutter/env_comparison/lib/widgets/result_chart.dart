@@ -87,13 +87,13 @@ class ResultChart extends StatelessWidget {
           ),
         ),
         AspectRatio(
-          aspectRatio: 3,
+          aspectRatio: 2,
           child: Padding(
-            padding: const EdgeInsets.only(top: 16, left: 50),
+            padding: const EdgeInsets.only(top: 16, right: 16),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final barsSpace = 4.0 * constraints.maxWidth / 400;
-                final barsWidth = 16.0 * constraints.maxWidth / 400;
+                final barsSpace = 4.0 * constraints.maxWidth / 200;
+                final barsWidth = 16.0 * constraints.maxWidth / 300;
                 return BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.center,

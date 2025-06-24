@@ -1,11 +1,11 @@
 import 'package:english_words/english_words.dart';
 import 'package:env_comparison/data_mapper.dart';
 import 'package:env_comparison/topics/topic_comparison_summary.dart';
-import 'package:env_comparison/utils/colors.dart';
 import 'package:env_comparison/widgets/result_chart.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'repository.dart';
 
@@ -18,11 +18,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var theme = FlexThemeData.dark(scheme: FlexScheme.bigStone);
+
+    theme = theme.copyWith(
+      textTheme: GoogleFonts.spaceGroteskTextTheme(theme.textTheme),
+    );
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
         title: 'Environment Comparison',
-        theme: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
+        theme: theme,
         home: MyHomePage(),
       ),
     );
@@ -73,7 +78,8 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final Repository repository = Repository();
-  List<ComparisonSummaryForTable> tableData = [];
+  Map<int, List<ComparisonSummaryForTable>> runData =
+      <int, List<ComparisonSummaryForTable>>{};
   DateTime? runTime;
   bool isLoading = true;
 
@@ -84,10 +90,14 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _loadData() async {
-    final data = await repository.getLatest();
+    final ComparisonSummary data = await repository.getLatest();
+    final DataMapper mapper = DataMapper();
 
     setState(() {
-      tableData = DataMapper().mapFromComparisonSummary(data);
+      runData = data.batches
+          .map((d) => mapper.mapFromComparisonSummary(d))
+          .toList()
+          .asMap();
       runTime = data.runTime;
       isLoading = false;
 
@@ -103,98 +113,108 @@ class _MainPageState extends State<MainPage> {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (tableData.isEmpty) {
+        if (runData.isEmpty) {
           return Center(child: Text("No comparison data available"));
         }
 
         return Padding(
           padding: EdgeInsets.all(20),
-          child: Card(
-            elevation: 20,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    runTime.toString(),
-                    // "testing",
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: 0.75 * (constraints.maxWidth - 60),
-                          ),
-                          child: DataTable(
-                            columnSpacing: 24.0,
-                            horizontalMargin: 12.0,
-                            columns: [
-                              DataColumn(label: Text('Data Type')),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Base Changes',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Comparison Changes',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Result Adds',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Result Mods',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Result Dels',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(label: Text('')),
-                            ],
-                            rows: tableData.map((td) {
-                              return buildDataRow(context, td);
-                            }).toList(),
-                          ),
+          child: ListView(
+            children: runData.entries.map((tableData) {
+              return Banner(
+                message: 'batch ${tableData.key + 1}',
+                location: BannerLocation.topEnd,
+                color: Colors.purple,
+                child: Card(
+                  elevation: 20,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          runTime.toString(),
+                          // "testing",
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: ResultChart(
-                          chartData: mapToChartData(tableData),
+                        const SizedBox(height: 15),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: 0.75 * (constraints.maxWidth - 60),
+                                ),
+                                child: DataTable(
+                                  showCheckboxColumn: false,
+                                  columnSpacing: 24.0,
+                                  horizontalMargin: 12.0,
+                                  columns: [
+                                    DataColumn(label: Text('Data Type')),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          'Base Changes',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          'Comparison Changes',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          'Result Adds',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          'Result Mods',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          'Result Dels',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(label: Text('')),
+                                  ],
+                                  rows: tableData.value.map((td) {
+                                    return buildDataRow(context, td);
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: ResultChart(
+                                chartData: mapToChartData(tableData.value),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            }).toList(),
           ),
         );
       },
@@ -215,20 +235,7 @@ ChartData mapToChartData(List<ComparisonSummaryForTable> tableData) {
     chartData.dels[x.dataType] = x.resultDels;
   }
 
-  printChartData(chartData);
   return chartData;
-}
-
-void printChartData(ChartData data) {
-  print('===== Chart Data =====');
-  print('ADDS: ${_formatMap(data.adds)}');
-  print('MODS: ${_formatMap(data.mods)}');
-  print('DELS: ${_formatMap(data.dels)}');
-  print('=====================');
-}
-
-String _formatMap(Map<String, int> map) {
-  return map.entries.map((e) => '${e.key}: ${e.value}').join(', ');
 }
 
 typedef ComparisonSummaryForTable = ({
@@ -262,8 +269,8 @@ DataRow buildDataRow(
             comparisonSummary.resultAdds.toString(),
             style: TextStyle(
               color: comparisonSummary.resultAdds > 0
-                  ? AppColors.add
-                  : Colors.white,
+                  ? Colors.red
+                  : Colors.green,
             ),
           ),
         ),
@@ -274,8 +281,8 @@ DataRow buildDataRow(
             comparisonSummary.resultMods.toString(),
             style: TextStyle(
               color: comparisonSummary.resultMods > 0
-                  ? AppColors.mod
-                  : Colors.white,
+                  ? Colors.red
+                  : Colors.green,
             ),
           ),
         ),
@@ -286,8 +293,8 @@ DataRow buildDataRow(
             comparisonSummary.resultDels.toString(),
             style: TextStyle(
               color: comparisonSummary.resultDels > 0
-                  ? AppColors.del
-                  : Colors.white,
+                  ? Colors.red
+                  : Colors.green,
             ),
           ),
         ),
@@ -318,7 +325,7 @@ class TopicDetailsPage extends StatelessWidget {
         final double verticalPadding = 20;
 
         // Calculate cards per row based on available space
-        final int crossAxisCount = constraints.maxWidth > 1700 ? 2 : 1;
+        // final int crossAxisCount = constraints.maxWidth > 1700 ? 2 : 1;
 
         return Padding(
           padding: EdgeInsets.only(
@@ -327,11 +334,11 @@ class TopicDetailsPage extends StatelessWidget {
             right: horizontalPadding,
             bottom: verticalPadding,
           ),
-          child: GridView.count(
-            crossAxisCount: crossAxisCount,
-            childAspectRatio: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
+          child: ListView(
+            // crossAxisCount: crossAxisCount,
+            // childAspectRatio: 2,
+            // mainAxisSpacing: 10,
+            // crossAxisSpacing: 10,
             children: [
               Card(
                 child: Padding(

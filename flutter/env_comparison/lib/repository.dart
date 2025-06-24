@@ -3,24 +3,37 @@ import 'package:env_comparison/topics/topic_comparison_summary.dart';
 
 import 'media_outlets/media_outlet_map_comparison_summary.dart';
 
-typedef BatchComparisonSummary = ({
+typedef ComparisonSummary = ({
   DateTime runTime,
+  List<BatchComparisonSummary> batches,
+});
+
+typedef BatchComparisonSummary = ({
   TopicComparisonSummary topicComparisonSummary,
   ShareClassComparisonSummary shareClassComparisonSummary,
   MediaOutletMapComparisonSummary mediaOutletMapComparisonSummary,
 });
 
 class Repository {
-  Future<BatchComparisonSummary> getLatest() async {
+  Future<ComparisonSummary> getLatest() async {
     var topicData = createFakeTopicComparisonData();
     var shareClassData = createFakeShareClassComparisonData();
     var mediaOutletMapData = createFakeMediaOutletMapDataComparisonData();
 
     return (
       runTime: DateTime.now().add(const Duration(seconds: -1)),
-      topicComparisonSummary: topicData,
-      shareClassComparisonSummary: shareClassData,
-      mediaOutletMapComparisonSummary: mediaOutletMapData,
+      batches: [
+        (
+          topicComparisonSummary: topicData,
+          shareClassComparisonSummary: shareClassData,
+          mediaOutletMapComparisonSummary: mediaOutletMapData,
+        ),
+        (
+          topicComparisonSummary: topicData,
+          shareClassComparisonSummary: shareClassData,
+          mediaOutletMapComparisonSummary: mediaOutletMapData,
+        ),
+      ],
     );
   }
 
