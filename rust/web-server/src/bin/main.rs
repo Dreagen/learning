@@ -2,14 +2,24 @@ use std::fs;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
+use std::thread;
 use std::time::Duration;
+
+use web_server::ThreadPool;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    let pool = ThreadPool::new(4);
+
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+
+        thread::spawn(|| {});
+
+        pool.execute(|| {
+            handle_connection(stream);
+        });
     }
 }
 
@@ -24,7 +34,7 @@ fn handle_connection(mut stream: TcpStream) {
     let (status_line, filename) = if buf.starts_with(get) {
         ("HTTP/1.1 200 OK", "index.html")
     } else if buf.starts_with(sleep) {
-        std::thread::sleep(Duration::from_secs(5));
+        std::thread::sleep(Duration::from_secs(15));
         ("HTTP/1.1 200 OK", "sleep.html")
     } else {
         ("HTTP/1.1 404 NOT FOUND", "404.html")
