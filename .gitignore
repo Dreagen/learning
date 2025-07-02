@@ -1,11 +1,3 @@
-#Rust
-debug/
-target/
-
-**/*.rs.bk
-
-*.pdb
-
 #Go
 *.exe
 *.exe~
@@ -31,20 +23,6 @@ erl_crash.dump
 *.beam
 /config/*.secret.exs
 .elixir_ls/
-
-#Flutter
-.dart_tool/
-.packages
-build/
-pubspec.lock
-doc/api/
-.env*
-*.dart.js
-*.info.json
-*.js
-*.js_
-*.js.deps
-*.js.map
 
 .flutter-plugins
 .flutter-plugins-dependencies
