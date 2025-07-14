@@ -3,3 +3,6 @@
 
 # General
 .env
+
+# Open code
+.opencode/
