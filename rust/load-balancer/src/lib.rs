@@ -18,23 +18,22 @@ pub fn start(servers: Vec<String>) {
     let server_count = servers.len();
     let mut current_server = 0;
     for stream in listener.incoming() {
-        let tcp_stream = stream.unwrap();
-
+        let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
         let server_number = current_server % server_count;
 
-        let (mut tcp_stream, buf) = read_stream(tcp_stream);
         for i in 0..server_count {
             let server_number = (server_number + i) % server_count;
-            print!("Forwarding request to server {server_number}");
 
-            let result_data = forward_to_server(&buf, &servers[server_number]);
-            if let Ok(result) = result_data {
+            print!("Forwarding request to server {server_number}");
+            let result = forward_to_server(&buf, &servers[server_number]);
+
+            if let Ok(result_data) = result {
                 println!("{} -> Success! {}", GREEN, RESET);
-                tcp_stream.write(&result).unwrap();
+                tcp_stream.write(&result_data).unwrap();
                 break;
             }
 
-            println!("{} -> Failed! - {}{}", RED, result_data.unwrap_err(), RESET);
+            println!("{} -> Failed! - {}{}", RED, result.unwrap_err(), RESET);
 
             if i == server_count - 1 {
                 println!(
@@ -48,7 +47,7 @@ pub fn start(servers: Vec<String>) {
     }
 }
 
-fn read_stream(mut stream: TcpStream) -> (TcpStream, Vec<u8>) {
+fn read_incoming_request(mut stream: TcpStream) -> (TcpStream, Vec<u8>) {
     let mut buf = [0; 1024];
 
     let amount_read = stream.read(&mut buf).unwrap();
