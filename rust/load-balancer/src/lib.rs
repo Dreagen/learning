@@ -20,39 +20,38 @@ pub fn start(servers: Vec<String>) {
         .build()
         .unwrap();
 
-    let server_count = servers.len();
-    let mut current_server = 0;
+    let mut current_server_number = 0;
     pool.scope(|s| {
         for stream in listener.incoming() {
             let servers = &servers;
             s.spawn(move |_| {
-                handle_connection(stream, current_server, server_count, &servers);
+                handle_connection(stream, current_server_number, &servers);
             });
 
-            current_server += 1;
+            current_server_number += 1;
         }
     })
 }
 
 fn handle_connection(
     stream: Result<TcpStream, Error>,
-    current_server: usize,
-    server_count: usize,
+    current_server_number: usize,
     servers: &Vec<String>,
 ) {
     let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
-    let server_number = current_server % server_count;
 
-    for i in 0..server_count {
-        let server_number = (server_number + i) % server_count;
+    let mut server_number = current_server_number;
+    for i in 0..servers.len() {
+        let (server, new_server_number) = get_server(servers, server_number);
+        server_number = new_server_number;
 
-        println!("Forwarding request to server {server_number}");
-        let result = forward_to_server(&buf, &servers[server_number]);
+        println!("Forwarding request to server {new_server_number}");
+        let result = forward_to_server(&buf, &server);
 
         if let Ok(result_data) = result {
             println!(
                 "{} -> Success from server {}! {}",
-                GREEN, server_number, RESET
+                GREEN, new_server_number, RESET
             );
             tcp_stream.write(&result_data).unwrap();
             break;
@@ -61,18 +60,23 @@ fn handle_connection(
         println!(
             "{} -> Failure from server {}! - {}{}",
             RED,
-            server_number,
+            new_server_number,
             result.unwrap_err(),
             RESET
         );
 
-        if i == server_count - 1 {
+        if i == servers.len() - 1 {
             println!(
                 "{}\nAll servers failed to respond, request not handled\n{}",
                 RED, RESET
             );
         }
     }
+}
+
+fn get_server(servers: &Vec<String>, current_server_number: usize) -> (String, usize) {
+    let server_number = (current_server_number + 1) % servers.len();
+    (servers[server_number].clone(), server_number)
 }
 
 fn read_incoming_request(mut stream: TcpStream) -> (TcpStream, Vec<u8>) {
