@@ -45,8 +45,7 @@ fn handle_connection(
         let (server, new_server_number) = get_server(servers, server_number);
         server_number = new_server_number;
 
-        println!("Forwarding request to server {new_server_number}");
-        let result = forward_to_server(&buf, &server);
+        let result = forward_to_server(&buf, &server, new_server_number);
 
         if let Ok(result_data) = result {
             println!(
@@ -87,9 +86,14 @@ fn read_incoming_request(mut stream: TcpStream) -> (TcpStream, Vec<u8>) {
     (stream, buf[..amount_read].to_vec())
 }
 
-fn forward_to_server(incoming_data: &Vec<u8>, server: &String) -> Result<Vec<u8>, std::io::Error> {
-    let mut buf = [0; 1024];
+fn forward_to_server(
+    incoming_data: &Vec<u8>,
+    server: &String,
+    server_number: usize,
+) -> Result<Vec<u8>, std::io::Error> {
+    println!("Forwarding request to server {server_number}");
 
+    let mut buf = [0; 1024];
     let tcp_stream_result = TcpStream::connect(server);
 
     match tcp_stream_result {
