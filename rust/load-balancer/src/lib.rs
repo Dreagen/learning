@@ -1,5 +1,5 @@
 use std::{
-    io::{Read, Write},
+    io::{Error, Read, Write},
     net::{TcpListener, TcpStream},
 };
 
@@ -15,35 +15,63 @@ pub fn start(servers: Vec<String>) {
 
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(5)
+        .build()
+        .unwrap();
+
     let server_count = servers.len();
     let mut current_server = 0;
-    for stream in listener.incoming() {
-        let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
-        let server_number = current_server % server_count;
+    pool.scope(|s| {
+        for stream in listener.incoming() {
+            let servers = &servers;
+            s.spawn(move |_| {
+                handle_connection(stream, current_server, server_count, &servers);
+            });
 
-        for i in 0..server_count {
-            let server_number = (server_number + i) % server_count;
+            current_server += 1;
+        }
+    })
+}
 
-            print!("Forwarding request to server {server_number}");
-            let result = forward_to_server(&buf, &servers[server_number]);
+fn handle_connection(
+    stream: Result<TcpStream, Error>,
+    current_server: usize,
+    server_count: usize,
+    servers: &Vec<String>,
+) {
+    let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
+    let server_number = current_server % server_count;
 
-            if let Ok(result_data) = result {
-                println!("{} -> Success! {}", GREEN, RESET);
-                tcp_stream.write(&result_data).unwrap();
-                break;
-            }
+    for i in 0..server_count {
+        let server_number = (server_number + i) % server_count;
 
-            println!("{} -> Failed! - {}{}", RED, result.unwrap_err(), RESET);
+        println!("Forwarding request to server {server_number}");
+        let result = forward_to_server(&buf, &servers[server_number]);
 
-            if i == server_count - 1 {
-                println!(
-                    "{}\nAll servers failed to respond, request not handled\n{}",
-                    RED, RESET
-                );
-            }
+        if let Ok(result_data) = result {
+            println!(
+                "{} -> Success from server {}! {}",
+                GREEN, server_number, RESET
+            );
+            tcp_stream.write(&result_data).unwrap();
+            break;
         }
 
-        current_server += 1;
+        println!(
+            "{} -> Failure from server {}! - {}{}",
+            RED,
+            server_number,
+            result.unwrap_err(),
+            RESET
+        );
+
+        if i == server_count - 1 {
+            println!(
+                "{}\nAll servers failed to respond, request not handled\n{}",
+                RED, RESET
+            );
+        }
     }
 }
 
