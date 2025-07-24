@@ -1,16 +1,26 @@
 use std::{
     io::{Error, Read, Write},
     net::{TcpListener, TcpStream},
+    sync::{Arc, Mutex},
 };
+
+use crate::server_providers::ServerProvider;
+mod server_providers;
 
 const GREEN: &str = "\x1b[32m";
 const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 
-pub fn start(servers: Vec<String>) {
+#[derive(Clone, Debug)]
+pub struct Server {
+    pub address: String,
+    pub number: usize,
+}
+
+pub fn start(servers: Vec<Server>) {
     println!("Load balancing between servers:");
     for server in &servers {
-        println!("   {}", server);
+        println!("   {}", server.address);
     }
 
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
@@ -20,37 +30,37 @@ pub fn start(servers: Vec<String>) {
         .build()
         .unwrap();
 
-    let mut current_server_number = 0;
+    let server_provider = server_providers::create(server_providers::Strategy::RoundRobin, servers);
+
     pool.scope(|s| {
         for stream in listener.incoming() {
-            let servers = &servers;
+            let sp = server_provider.clone();
             s.spawn(move |_| {
-                handle_connection(stream, current_server_number, &servers);
+                handle_connection(stream, sp);
             });
-
-            current_server_number += 1;
         }
     })
 }
 
 fn handle_connection(
     stream: Result<TcpStream, Error>,
-    current_server_number: usize,
-    servers: &Vec<String>,
+    server_provider: Arc<Mutex<dyn ServerProvider>>,
 ) {
     let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
 
-    let mut server_number = current_server_number;
-    for i in 0..servers.len() {
-        let (server, new_server_number) = get_server(servers, server_number);
-        server_number = new_server_number;
+    let mut sp = server_provider.lock().unwrap();
+    let get_server_count = sp.get_server_count();
 
-        let result = forward_to_server(&buf, &server, new_server_number);
+    for i in 0..get_server_count {
+        let new_server = sp.get_next_server();
+        let server_number = new_server.number;
+
+        let result = forward_to_server(&buf, new_server);
 
         if let Ok(result_data) = result {
             println!(
                 "{} -> Success from server {}! {}",
-                GREEN, new_server_number, RESET
+                GREEN, server_number, RESET
             );
             tcp_stream.write(&result_data).unwrap();
             break;
@@ -59,23 +69,18 @@ fn handle_connection(
         println!(
             "{} -> Failure from server {}! - {}{}",
             RED,
-            new_server_number,
+            server_number,
             result.unwrap_err(),
             RESET
         );
 
-        if i == servers.len() - 1 {
+        if i == get_server_count - 1 {
             println!(
                 "{}\nAll servers failed to respond, request not handled\n{}",
                 RED, RESET
             );
         }
     }
-}
-
-fn get_server(servers: &Vec<String>, current_server_number: usize) -> (String, usize) {
-    let server_number = (current_server_number + 1) % servers.len();
-    (servers[server_number].clone(), server_number)
 }
 
 fn read_incoming_request(mut stream: TcpStream) -> (TcpStream, Vec<u8>) {
@@ -86,15 +91,11 @@ fn read_incoming_request(mut stream: TcpStream) -> (TcpStream, Vec<u8>) {
     (stream, buf[..amount_read].to_vec())
 }
 
-fn forward_to_server(
-    incoming_data: &Vec<u8>,
-    server: &String,
-    server_number: usize,
-) -> Result<Vec<u8>, std::io::Error> {
-    println!("Forwarding request to server {server_number}");
+fn forward_to_server(incoming_data: &Vec<u8>, server: Server) -> Result<Vec<u8>, std::io::Error> {
+    println!("Forwarding request to server {}", server.number);
 
     let mut buf = [0; 1024];
-    let tcp_stream_result = TcpStream::connect(server);
+    let tcp_stream_result = TcpStream::connect(server.address);
 
     match tcp_stream_result {
         Ok(mut tcp_stream) => {

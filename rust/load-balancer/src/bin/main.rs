@@ -1,4 +1,4 @@
-use load_balancer::start;
+use load_balancer::{Server, start};
 use serde::Deserialize;
 use std::fs;
 
@@ -12,5 +12,15 @@ fn main() {
 
     let config: Config = toml::from_str(&app_content).expect("Failed to parse app.toml");
 
-    start(config.servers);
+    start(
+        config
+            .servers
+            .iter()
+            .enumerate()
+            .map(|(i, addr)| Server {
+                address: addr.to_string(),
+                number: i,
+            })
+            .collect(),
+    );
 }
