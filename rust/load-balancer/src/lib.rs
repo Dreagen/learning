@@ -49,9 +49,9 @@ fn handle_connection(
     let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
 
     let mut sp = server_provider.lock().unwrap();
-    let get_server_count = sp.get_server_count();
+    let server_count = sp.get_server_count();
 
-    for i in 0..get_server_count {
+    for i in 0..server_count {
         let new_server = sp.get_next_server();
         let server_number = new_server.number;
 
@@ -74,7 +74,7 @@ fn handle_connection(
             RESET
         );
 
-        if i == get_server_count - 1 {
+        if i == server_count - 1 {
             println!(
                 "{}\nAll servers failed to respond, request not handled\n{}",
                 RED, RESET
