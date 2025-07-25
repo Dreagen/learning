@@ -18,7 +18,7 @@ pub fn create(strategy: Strategy, servers: Vec<Server>) -> Arc<Mutex<dyn ServerP
     match strategy {
         Strategy::RoundRobin => Arc::new(Mutex::new(RoundRobinServerProvider {
             servers,
-            current_index: 0,
+            next_server_index: 0,
         })),
         Strategy::LeastTraffic => panic!("Least traffic strategy has not been implemented"),
     }
@@ -26,13 +26,13 @@ pub fn create(strategy: Strategy, servers: Vec<Server>) -> Arc<Mutex<dyn ServerP
 
 pub struct RoundRobinServerProvider {
     pub servers: Vec<Server>,
-    pub current_index: usize,
+    pub next_server_index: usize,
 }
 
 impl ServerProvider for RoundRobinServerProvider {
     fn get_next_server(&mut self) -> Server {
-        let next_server = self.servers[self.current_index].clone();
-        self.current_index = (self.current_index + 1) % self.get_server_count();
+        let next_server = self.servers[self.next_server_index].clone();
+        self.next_server_index = (self.next_server_index + 1) % self.get_server_count();
 
         next_server
     }
