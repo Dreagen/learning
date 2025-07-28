@@ -9,10 +9,6 @@ const GREEN: &str = "\x1b[32m";
 const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 
-pub trait ServerProvider: Send {
-    fn get_next_server(&mut self) -> Server;
-}
-
 pub fn handle_connection(stream: Result<TcpStream, Error>, server: Server) {
     let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
 

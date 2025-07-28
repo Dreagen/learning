@@ -2,7 +2,7 @@ use std::{cmp, net::TcpListener};
 
 use crate::{
     LoadBalancer, Server,
-    request_handler::{self, ServerProvider},
+    request_handler::{self},
 };
 
 pub struct RoundRobinLoadBalancer {
@@ -43,7 +43,7 @@ pub struct RoundRobinServerProvider {
     pub next_server_index: usize,
 }
 
-impl ServerProvider for RoundRobinServerProvider {
+impl RoundRobinServerProvider {
     fn get_next_server(&mut self) -> Server {
         let next_server = self.servers[self.next_server_index].clone();
         self.next_server_index = (self.next_server_index + 1) % self.servers.len();
