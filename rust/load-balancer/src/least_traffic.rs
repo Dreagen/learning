@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    LoadBalancer, Server,
+    LoadBalancer, Log, Server,
     request_handler::{self},
 };
 
@@ -27,7 +27,7 @@ impl LeastTrafficLoadBalancer {
 }
 
 impl LoadBalancer for LeastTrafficLoadBalancer {
-    fn execute(&self, listener: TcpListener) {
+    fn execute(&self, log: Arc<Mutex<Log>>, listener: TcpListener) {
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.server_queues.len() + 1 as usize)
             .build()
@@ -45,7 +45,11 @@ impl LoadBalancer for LeastTrafficLoadBalancer {
                             if let Some(stream) = queue_guard.pop_front() {
                                 drop(queue_guard);
                                 println!("Handling request for server: {}", server.address);
-                                request_handler::handle_connection(Ok(stream), server.clone());
+                                request_handler::handle_connection(
+                                    log.clone(),
+                                    Ok(stream),
+                                    server.clone(),
+                                );
                             }
                         } else {
                             drop(queue_guard);

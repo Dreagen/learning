@@ -1,15 +1,18 @@
 use std::{
     io::{Error, Read, Write},
     net::TcpStream,
+    sync::{Arc, Mutex},
 };
 
-use crate::Server;
+use crate::{Log, Server};
 
 const GREEN: &str = "\x1b[32m";
 const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 
-pub fn handle_connection(stream: Result<TcpStream, Error>, server: Server) {
+pub fn handle_connection(log: Arc<Mutex<Log>>, stream: Result<TcpStream, Error>, server: Server) {
+    log.lock().unwrap().log_call(server.clone());
+
     let (mut tcp_stream, buf) = read_incoming_request(stream.unwrap());
 
     let server_number = server.number;

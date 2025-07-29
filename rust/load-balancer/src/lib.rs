@@ -1,9 +1,10 @@
-use std::net::TcpListener;
-
-use crate::{
-    least_traffic::{LeastTrafficLoadBalancer, LeastTrafficServerProvider},
-    round_robin::RoundRobinLoadBalancer,
+use std::{
+    collections::HashMap,
+    net::TcpListener,
+    sync::{Arc, Mutex},
 };
+
+use crate::{least_traffic::LeastTrafficLoadBalancer, round_robin::RoundRobinLoadBalancer};
 mod least_traffic;
 mod request_handler;
 mod round_robin;
@@ -12,6 +13,16 @@ mod round_robin;
 pub struct Server {
     pub address: String,
     pub number: usize,
+}
+
+pub struct Log {
+    pub server_calls: HashMap<Server, u32>,
+}
+
+impl Log {
+    fn log_call(&mut self, server: Server) {
+        *self.server_calls.entry(server).or_insert(0) += 1;
+    }
 }
 
 pub fn start(strategy_input: Option<&String>, servers: Vec<Server>) {
@@ -32,10 +43,14 @@ pub fn start(strategy_input: Option<&String>, servers: Vec<Server>) {
 
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    let log = Arc::new(Mutex::new(Log {
+        server_calls: HashMap::new(),
+    }));
+
     match strategy {
-        Strategy::RoundRobin => RoundRobinLoadBalancer::new(servers).execute(listener),
+        Strategy::RoundRobin => RoundRobinLoadBalancer::new(servers).execute(log, listener),
         Strategy::LeastTraffic => {
-            LeastTrafficLoadBalancer::new(servers).execute(listener);
+            LeastTrafficLoadBalancer::new(servers).execute(log, listener);
         }
     }
 }
@@ -47,5 +62,5 @@ pub enum Strategy {
 }
 
 pub trait LoadBalancer {
-    fn execute(&self, listener: TcpListener);
+    fn execute(&self, log: Arc<Mutex<Log>>, listener: TcpListener);
 }

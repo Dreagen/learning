@@ -1,7 +1,11 @@
-use std::{cmp, net::TcpListener};
+use std::{
+    cmp,
+    net::TcpListener,
+    sync::{Arc, Mutex},
+};
 
 use crate::{
-    LoadBalancer, Server,
+    LoadBalancer, Log, Server,
     request_handler::{self},
 };
 
@@ -16,7 +20,7 @@ impl RoundRobinLoadBalancer {
 }
 
 impl LoadBalancer for RoundRobinLoadBalancer {
-    fn execute(&self, listener: TcpListener) {
+    fn execute(&self, log: Arc<Mutex<Log>>, listener: TcpListener) {
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(cmp::min(5, self.servers.len() as usize))
             .build()
@@ -31,7 +35,7 @@ impl LoadBalancer for RoundRobinLoadBalancer {
             for stream in listener.incoming() {
                 let server = server_provider.get_next_server();
                 s.spawn(|_| {
-                    request_handler::handle_connection(stream, server);
+                    request_handler::handle_connection(log.clone(), stream, server);
                 });
             }
         })
