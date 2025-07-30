@@ -43,8 +43,12 @@ impl LoadBalancer for LeastTrafficLoadBalancer {
                         let mut queue_guard = queue.lock().unwrap();
                         if !queue_guard.is_empty() {
                             if let Some(stream) = queue_guard.pop_front() {
+                                let queue_size = queue_guard.len();
                                 drop(queue_guard);
-                                println!("Handling request for server: {}", server.address);
+                                println!(
+                                    "Handling request for server: {} with queue size: {}",
+                                    server.address, queue_size
+                                );
                                 request_handler::handle_connection(
                                     log.clone(),
                                     Ok(stream),
