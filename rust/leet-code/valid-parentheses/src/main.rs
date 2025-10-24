@@ -1,27 +1,42 @@
 use std::collections::HashMap;
 
 fn main() {
-    println!("Hello, world!");
+    let input = "(){}}{".to_string();
+    println!(
+        "checking:{input}: has valid parenthesis {}",
+        is_valid(input.clone())
+    );
 }
 
 pub fn is_valid(s: String) -> bool {
+    let mut stack = Vec::new();
     let mut parenthesis_map = HashMap::new();
+    parenthesis_map.insert(')', '(');
+    parenthesis_map.insert(']', '[');
+    parenthesis_map.insert('}', '{');
 
-    let open_round = '(';
-    let close_round = ')';
+    for c in s.chars() {
+        if stack.len() == 0 && parenthesis_map.keys().any(|closing| &c == closing) {
+            return false;
+        }
 
-    let open_curly = '{';
-    let close_curly = '}';
+        if parenthesis_map.values().any(|opening| &c == opening) {
+            stack.push(c);
+            continue;
+        }
 
-    let open_square = '[';
-    let close_square = ']';
+        if parenthesis_map.keys().any(|closing| &c == closing) {
+            let popped = stack.pop_if(|item| *item == parenthesis_map[&c]);
 
-    let count_round = 0;
-    let count = 0;
+            if popped == None {
+                return false;
+            }
+        }
+    }
 
-    let parenthesis_list = [];
-
-    for c in s.chars() {}
+    if stack.is_empty() {
+        return true;
+    }
     false
 }
 
