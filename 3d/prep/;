@@ -1,0 +1,28 @@
+const canvas = game;
+console.log(canvas);
+
+const WIDTH = 1000;
+const HEIGHT = 1000;
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
+const ctx = canvas.getContext("2d");
+
+function clear() {
+    ctx.fillStyle = "#101010"
+    ctx.fillRect(0, 0, 1000, 1000);
+}
+
+function point({ x, y }) {
+    ctx.fillStyle = "green"
+    ctx.fillRect(100, 100, 20, 20);
+}
+
+function transform({ x, y }) {
+    x = (x + 1) / 2; // x comes in between -1 and 1 => now is between 0 and 1
+    x => x * WIDTH; // matched to width of canvas
+    y => y * HEIGHT; // matched to height of canvas
+}
+
+clear();
+point();
