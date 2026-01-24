@@ -32,7 +32,7 @@ function point({ x, y }) {
 
 function transformToCanvasLayout({ x, y }) {
     x = (x + 1) / 2; // x comes in between -1 and 1 => now is between 0 and 1
-    y = (y + 1) / 2; // y comes in between -1 and 1 => now is between 0 and 1
+    y = (1 - (y + 1) / 2); // y comes in between -1 and 1 => now is between 0 and 1
     x = x * WIDTH; // matched to width of canvas
     y = y * HEIGHT; // matched to height of canvas
 
@@ -47,15 +47,15 @@ function parse3dTo2d({ x, y, z }) {
 }
 
 const points = [
-    { x: -0.25, y: -0.25, z: 1 },
-    { x: 0.25, y: -0.25, z: 1 },
     { x: -0.25, y: 0.25, z: 1 },
     { x: 0.25, y: 0.25, z: 1 },
+    { x: 0.25, y: -0.25, z: 1 },
+    { x: -0.25, y: -0.25, z: 1 },
 
-    { x: -0.25, y: -0.25, z: 2 },
-    { x: 0.25, y: -0.25, z: 2 },
     { x: -0.25, y: 0.25, z: 2 },
     { x: 0.25, y: 0.25, z: 2 },
+    { x: 0.25, y: -0.25, z: 2 },
+    { x: -0.25, y: -0.25, z: 2 },
 ]
 
 const faces = [
@@ -69,16 +69,18 @@ const faces = [
 
 clear();
 
-for (p of points) {
-    point(transformToCanvasLayout(parse3dTo2d({ x: p.x, y: p.y, z: p.z })));
-}
-
 for (f of faces) {
-    for (i of f) {
-        console.log(i)
+    for (let i = 0; i < f.length; ++i) {
+        const fromLine = points[f[i]]
+        const toLine = points[f[(i + 1) % f.length]]
+        console.log("line from: " + fromLine.x + " " + fromLine.y + " " + fromLine.z)
+        console.log("line to: " + toLine.x + " " + toLine.y + " " + toLine.z)
+        console.log(" ")
         line(
-            transformToCanvasLayout(parse3dTo2d(points[i])),
-            transformToCanvasLayout(parse3dTo2d(points[(i + 1) % ]))
+            transformToCanvasLayout(parse3dTo2d(fromLine)),
+            transformToCanvasLayout(parse3dTo2d(toLine))
         );
+
     }
+    console.log("face done")
 }
