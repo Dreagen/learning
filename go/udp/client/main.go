@@ -25,7 +25,8 @@ func main() {
 
 	defer connection.Close()
 
-	fmt.Println("Starting talking to the UDP echo server")
+	fmt.Println("\nSend messages to UDP echo server\n")
+
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()

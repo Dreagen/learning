@@ -40,6 +40,8 @@ func main() {
 		go worker(connection, jobs)
 	}
 
+	fmt.Printf("Server listening on: %s\n", udpAddress)
+
 	buffer := make([]byte, 1024)
 	for {
 		n, clientAddress, err := connection.ReadFromUDP(buffer)
