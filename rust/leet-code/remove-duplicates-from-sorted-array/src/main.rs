@@ -1,42 +1,26 @@
 fn main() {
     println!(
         "{}",
-        remove_duplicates(&mut vec![1, 2, 2, 3, 4, 4, 5, 6, 6])
+        remove_duplicates(&mut vec![1, 2, 2, 2, 3, 4, 4, 5, 6, 6])
     );
 }
 
 pub fn remove_duplicates(nums: &mut Vec<i32>) -> i32 {
-    let mut unique = 0;
-
     if nums.is_empty() {
-        return unique;
+        return 0;
     }
 
-    let mut nums2 = vec![0 as i32; nums.len()];
+    let mut unique = 1;
 
-    for (i, ele) in nums.into_iter().enumerate() {
-        if i == 0 {
-            nums2[i] = *ele;
+    let mut current = nums[0];
+    for i in 1..nums.len() {
+        let next = nums[i];
+        if next != current {
             unique += 1;
-            continue;
-        }
-
-        match nums2.get(i - 1) {
-            Some(value) => {
-                if value != ele {
-                    nums2[i] = *ele;
-                    unique += 1;
-                }
-            }
-            None => {}
+            nums[unique - 1] = next;
+            current = next;
         }
     }
 
-    nums2.iter().for_each(|n| println!("{n}"));
-
-    for (i, n) in nums2.iter().enumerate() {
-        nums[i] = *n;
-    }
-
-    return unique;
+    return unique as i32;
 }
